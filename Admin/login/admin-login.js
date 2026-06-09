@@ -55,15 +55,17 @@ function validateForm() {
 /* ---------------- UI ---------------- */
 
 function restoreRememberedEmail() {
-  const saved = localStorage.getItem("aidloop_admin_email");
-  if (saved) {
-    els.email.value = saved;
+  const savedEmail = localStorage.getItem("aidloop_admin_email");
+
+  if (savedEmail) {
+    els.email.value = savedEmail;
     els.rememberMe.checked = true;
   }
 }
 
 function togglePasswordVisibility() {
   const isHidden = els.password.type === "password";
+
   els.password.type = isHidden ? "text" : "password";
 
   els.togglePassword.innerHTML = isHidden
@@ -73,8 +75,8 @@ function togglePasswordVisibility() {
 
 /* ---------------- LOGIN ---------------- */
 
-async function handleLogin(e) {
-  e.preventDefault();
+async function handleLogin(event) {
+  event.preventDefault();
 
   if (!validateForm()) return;
 
@@ -84,7 +86,7 @@ async function handleLogin(e) {
     els.loginBtn.disabled = true;
     els.loginBtn.textContent = "Logging in...";
 
-    const res = await apiRequest("/auth/login", {
+    const response = await apiRequest("/auth/login", {
       method: "POST",
       body: JSON.stringify({
         email: els.email.value.trim(),
@@ -92,28 +94,42 @@ async function handleLogin(e) {
       })
     });
 
-    const role = String(res?.user?.role || res?.role || "").toLowerCase();
+    const role = String(
+      response?.user?.role || response?.role || ""
+    ).toLowerCase();
 
-    if (role !== "admin") {
+    console.log("LOGIN RESPONSE:", response);
+    console.log("ROLE:", role);
+
+    /* ADMIN CHECK */
+    if (!["admin", "superadmin"].includes(role)) {
       throw new Error("Access denied: Admins only");
     }
 
-    // Remember email
+    /* REMEMBER EMAIL */
     if (els.rememberMe.checked) {
-      localStorage.setItem("aidloop_admin_email", els.email.value.trim());
+      localStorage.setItem(
+        "aidloop_admin_email",
+        els.email.value.trim()
+      );
     } else {
       localStorage.removeItem("aidloop_admin_email");
     }
 
-    els.formSuccess.textContent = "Login successful";
+    /* SUCCESS */
+    els.formSuccess.textContent =
+      response?.message || "Login successful";
 
-    // 🔥 IMPORTANT: redirect using ROUTES
+    /* REDIRECT */
     setTimeout(() => {
-      window.location.href = ROUTES.dashboard;
+      window.location.href = ROUTES.adminDashboard;
     }, 800);
 
-  } catch (err) {
-    els.formError.textContent = err.message || "Login failed";
+  } catch (error) {
+    console.error("Admin login failed:", error);
+
+    els.formError.textContent =
+      error.message || "Login failed";
   } finally {
     els.loginBtn.disabled = false;
     els.loginBtn.textContent = "Log in";
@@ -124,7 +140,9 @@ async function handleLogin(e) {
 
 function handleForgotPassword() {
   clearErrors();
-  els.formError.textContent = "Forgot password not implemented yet.";
+
+  els.formError.textContent =
+    "Forgot password endpoint is not available yet.";
 }
 
 /* ---------------- INIT ---------------- */
@@ -132,7 +150,15 @@ function handleForgotPassword() {
 document.addEventListener("DOMContentLoaded", () => {
   restoreRememberedEmail();
 
-  els.loginForm.addEventListener("submit", handleLogin);
-  els.togglePassword.addEventListener("click", togglePasswordVisibility);
-  els.forgotPasswordBtn.addEventListener("click", handleForgotPassword);
+  els.loginForm?.addEventListener("submit", handleLogin);
+
+  els.togglePassword?.addEventListener(
+    "click",
+    togglePasswordVisibility
+  );
+
+  els.forgotPasswordBtn?.addEventListener(
+    "click",
+    handleForgotPassword
+  );
 });
