@@ -37,15 +37,15 @@ function validateForm() {
   let valid = true;
 
   if (!email) {
-    els.emailError.textContent = "Email is required";
+    els.emailError.textContent = "Email address is required.";
     valid = false;
   } else if (!validateEmail(email)) {
-    els.emailError.textContent = "Invalid email format";
+    els.emailError.textContent = "Enter a valid email address.";
     valid = false;
   }
 
   if (!password) {
-    els.passwordError.textContent = "Password is required";
+    els.passwordError.textContent = "Password is required.";
     valid = false;
   }
 
@@ -55,20 +55,20 @@ function validateForm() {
 /* ---------------- UI ---------------- */
 
 function restoreRememberedEmail() {
-  const savedEmail = localStorage.getItem("aidloop_admin_email");
+  const rememberedEmail = localStorage.getItem("aidloop_admin_email");
 
-  if (savedEmail) {
-    els.email.value = savedEmail;
+  if (rememberedEmail) {
+    els.email.value = rememberedEmail;
     els.rememberMe.checked = true;
   }
 }
 
 function togglePasswordVisibility() {
-  const isHidden = els.password.type === "password";
+  const isPassword = els.password.type === "password";
 
-  els.password.type = isHidden ? "text" : "password";
+  els.password.type = isPassword ? "text" : "password";
 
-  els.togglePassword.innerHTML = isHidden
+  els.togglePassword.innerHTML = isPassword
     ? '<i class="fa-regular fa-eye"></i>'
     : '<i class="fa-regular fa-eye-slash"></i>';
 }
@@ -86,7 +86,7 @@ async function handleLogin(event) {
     els.loginBtn.disabled = true;
     els.loginBtn.textContent = "Logging in...";
 
-    const response = await apiRequest("/auth/login", {
+    const payload = await apiRequest("/auth/login", {
       method: "POST",
       body: JSON.stringify({
         email: els.email.value.trim(),
@@ -94,19 +94,22 @@ async function handleLogin(event) {
       })
     });
 
+    console.log("Admin login payload:", payload);
+
     const role = String(
-      response?.user?.role || response?.role || ""
+      payload?.user?.role ||
+      payload?.role ||
+      ""
     ).toLowerCase();
 
-    console.log("LOGIN RESPONSE:", response);
-    console.log("ROLE:", role);
-
-    /* ADMIN CHECK */
-    if (!["admin", "superadmin"].includes(role)) {
-      throw new Error("Access denied: Admins only");
+    /* IMPORTANT:
+       Only block if role exists AND is not admin
+    */
+    if (role && role !== "admin") {
+      throw new Error("This account is not an admin account.");
     }
 
-    /* REMEMBER EMAIL */
+    /* Remember email */
     if (els.rememberMe.checked) {
       localStorage.setItem(
         "aidloop_admin_email",
@@ -116,20 +119,18 @@ async function handleLogin(event) {
       localStorage.removeItem("aidloop_admin_email");
     }
 
-    /* SUCCESS */
     els.formSuccess.textContent =
-      response?.message || "Login successful";
+      payload.message || "Login successful.";
 
-    /* REDIRECT */
     setTimeout(() => {
-      window.location.href = ROUTES.adminDashboard;
+      window.location.href = ROUTES.dashboard;
     }, 800);
 
   } catch (error) {
     console.error("Admin login failed:", error);
 
     els.formError.textContent =
-      error.message || "Login failed";
+      error.message || "Login failed.";
   } finally {
     els.loginBtn.disabled = false;
     els.loginBtn.textContent = "Log in";
@@ -142,7 +143,7 @@ function handleForgotPassword() {
   clearErrors();
 
   els.formError.textContent =
-    "Forgot password endpoint is not available yet.";
+    "Forgot password endpoint has not been implemented yet.";
 }
 
 /* ---------------- INIT ---------------- */
@@ -150,15 +151,16 @@ function handleForgotPassword() {
 document.addEventListener("DOMContentLoaded", () => {
   restoreRememberedEmail();
 
-  els.loginForm?.addEventListener("submit", handleLogin);
+  els.loginForm.addEventListener("submit", handleLogin);
 
-  els.togglePassword?.addEventListener(
+  els.togglePassword.addEventListener(
     "click",
     togglePasswordVisibility
   );
 
-  els.forgotPasswordBtn?.addEventListener(
+  els.forgotPasswordBtn.addEventListener(
     "click",
     handleForgotPassword
   );
 });
+
