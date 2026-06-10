@@ -123,7 +123,7 @@ async function handleLogin(event) {
       payload.message || "Login successful.";
 
     setTimeout(() => {
-      window.location.href = ROUTES.dashboard;
+      window.location.href = ROUTES.adminDashboard;
     }, 800);
 
   } catch (error) {
