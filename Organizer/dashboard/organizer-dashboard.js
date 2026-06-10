@@ -366,32 +366,32 @@ async function loadDashboard() {
 //    UI
 // ================================================== */
 
-// function bindUI() {
+function bindUI() {
 
-//   if (els.logoutBtn) {
+  if (els.logoutBtn) {
 
-//     els.logoutBtn.addEventListener(
-//       "click",
-//       async () => {
+    els.logoutBtn.addEventListener(
+      "click",
+      async () => {
 
-//         console.log("Logout clicked");
+        console.log("Logout clicked");
 
-//         await logout(
-//           ROUTES.organizerLogin
-//         );
-//       }
-//     );
-//   }
-// }
+        await logout(
+          ROUTES.organizerLogin
+        );
+      }
+    );
+  }
+}
 
 /* ---------------- UI ---------------- */
 
-function bindUI() {
-  els.logoutBtn?.addEventListener("click", async (e) => {
-    e.preventDefault();
-    await logout(ROUTES.organizerLogin);
-  });
-}
+// function bindUI() {
+//   els.logoutBtn?.addEventListener("click", async (e) => {
+//     e.preventDefault();
+//     await logout(ROUTES.organizerLogin);
+//   });
+// }
 /* ==================================================
    INIT
 ================================================== */
