@@ -1,13 +1,13 @@
-import { loadAdminProfile } from "../../Assets/Js/admin/admin-auth.js";
+import { loadAdminProfile } from "../../assets/js/admin/admin-auth.js";
 import {
   fetchOrganizationDirectory,
   filterOrganizations,
   getDisplayName,
   getLocation,
   getStatusLabel
-} from "../../Assets/Js/admin/admin-organizations.js";
-import { ROUTES } from "../../Assets/Js/config.js";
-import { logout } from "../../Assets/Js/logout.js";
+} from "../../assets/js/admin/admin-organizations.js";
+import { ROUTES } from "../../assets/js/config.js";
+import { logout } from "../../assets/js/logout.js";
 
 const els = {
   adminName: document.getElementById("adminName"),

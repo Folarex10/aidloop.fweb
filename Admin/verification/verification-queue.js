@@ -1,8 +1,8 @@
-import { loadAdminProfile } from "../../Assets/Js/admin/admin-auth.js";
+import { loadAdminProfile } from "../../assets/js/admin/admin-auth.js";
 import {
   fetchOrganizers,
   applyOverrides
-} from "../../Assets/Js/admin/admin-verification.js";
+} from "../../assets/js/admin/admin-verification.js";
 
 const els = {
   searchInput: document.getElementById("searchInput"),

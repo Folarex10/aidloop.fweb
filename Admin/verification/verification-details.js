@@ -1,10 +1,10 @@
-import { apiRequest } from "../../Assets/Js/api.js";
+import { apiRequest } from "../../assets/js/api.js";
 import {
   fetchOrganizers,
   getVerificationStatus,
   getStoredOverrides,
   saveOverride
-} from "../../Assets/Js/admin/admin-verification.js";
+} from "../../assets/js/admin/admin-verification.js";
 
 const els = {
   orgTitle: document.getElementById("orgTitle"),
