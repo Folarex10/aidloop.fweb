@@ -362,28 +362,36 @@ async function loadDashboard() {
   }
 }
 
-/* ==================================================
-   UI
-================================================== */
+// /* ==================================================
+//    UI
+// ================================================== */
+
+// function bindUI() {
+
+//   if (els.logoutBtn) {
+
+//     els.logoutBtn.addEventListener(
+//       "click",
+//       async () => {
+
+//         console.log("Logout clicked");
+
+//         await logout(
+//           ROUTES.organizerLogin
+//         );
+//       }
+//     );
+//   }
+// }
+
+/* ---------------- UI ---------------- */
 
 function bindUI() {
-
-  if (els.logoutBtn) {
-
-    els.logoutBtn.addEventListener(
-      "click",
-      async () => {
-
-        console.log("Logout clicked");
-
-        await logout(
-          ROUTES.organizerLogin
-        );
-      }
-    );
-  }
+  els.logoutBtn?.addEventListener("click", async (e) => {
+    e.preventDefault();
+    await logout(ROUTES.organizerLogin);
+  });
 }
-
 /* ==================================================
    INIT
 ================================================== */
