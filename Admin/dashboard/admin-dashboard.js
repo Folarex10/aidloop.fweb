@@ -37,9 +37,9 @@ function renderActivity(rows) {
 }
 
 function bindUI() {
-  els.goVerificationQueue.onclick = () => location.href = ROUTES.verification;
-  els.viewOrganizations.onclick = () => location.href = ROUTES.organizations;
-  els.viewEvents.onclick = () => location.href = ROUTES.events;
+  els.goVerificationQueue.onclick = () => location.href = ROUTES.adminVerificationQueue;
+  els.viewOrganizations.onclick = () => location.href = ROUTES.adminOrganizations;
+  els.viewEvents.onclick = () => location.href = ROUTES.adminEvents;
   els.logoutBtn.onclick = () => logout(ROUTES.landing);
 }
 
