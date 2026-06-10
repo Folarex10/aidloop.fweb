@@ -186,7 +186,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (!eventId) {
     alert("No event selected");
-    window.location.href = ROUTES.eventListing;
+    window.location.href = ROUTES.organizerEventListing;
     return;
   }
 

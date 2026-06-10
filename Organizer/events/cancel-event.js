@@ -42,7 +42,7 @@ function hideModal() {
 function validateEventId() {
   if (!eventId || eventId === "undefined" || eventId === "null") {
     alert("Invalid event ID");
-    window.location.href = ROUTES.eventListing;
+    window.location.href = ROUTES.organizerEventListing;
     return false;
   }
   return true;
@@ -73,7 +73,7 @@ async function cancelEvent() {
 
     alert("Event cancelled successfully");
 
-    window.location.href = ROUTES.eventListing;
+    window.location.href = ROUTES.organizerEventListing;
 
   } catch (err) {
     alert(err.message || "Failed to cancel event");
