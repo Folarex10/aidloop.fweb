@@ -137,7 +137,7 @@ async function loadDashboard() {
 
 function bindUI() {
   els.logoutBtn?.addEventListener("click", () => {
-    logout(ROUTES.organizerLogin);
+    logout(ROUTES.landing);
   });
 }
 
