@@ -40,11 +40,50 @@ function renderActivity(rows) {
   `).join("");
 }
 
+function openLogoutModal() {
+  els.logoutModal?.classList.remove("hidden");
+}
+
+function closeLogoutModal() {
+  els.logoutModal?.classList.add("hidden");
+
+  if (els.confirmLogout) {
+    els.confirmLogout.disabled = false;
+    els.confirmLogout.textContent = "Yes, Log out";
+  }
+}
+
+async function handleLogout() {
+  if (els.confirmLogout) {
+    els.confirmLogout.disabled = true;
+    els.confirmLogout.textContent = "Logging out...";
+  }
+
+  await logout(ROUTES.adminLogin);
+}
+
 function bindUI() {
   els.goVerificationQueue.onclick = () => location.href = ROUTES.adminVerificationQueue;
   els.viewOrganizations.onclick = () => location.href = ROUTES.adminOrganizations;
   els.viewEvents.onclick = () => location.href = ROUTES.adminEvents;
-  els.logoutBtn.onclick = () => logout(ROUTES.adminLogin);
+
+  // els.logoutBtn.onclick = () => logout(ROUTES.adminLogin);
+  els.logoutBtn.onclick = openLogoutModal;
+
+els.closeLogoutModal?.addEventListener(
+  "click",
+  closeLogoutModal
+);
+
+els.cancelLogout?.addEventListener(
+  "click",
+  closeLogoutModal
+);
+
+els.confirmLogout?.addEventListener(
+  "click",
+  handleLogout
+);
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
