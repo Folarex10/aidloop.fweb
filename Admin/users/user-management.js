@@ -1,5 +1,5 @@
 import { apiRequest } from "../../assets/js/api.js";
-import { requireRole } from "../../assets/js/admin/admin-auth.js";
+import { loadAdminProfile } from "../../assets/js/admin/admin-auth.js";
 import { logout } from "../../assets/js/logout.js";
 import { ROUTES } from "../../assets/js/config.js";
 
@@ -149,32 +149,32 @@ function bindDeactivateButtons() {
 
 /* ---------------- ADMIN PROFILE ---------------- */
 
-async function loadAdminProfile() {
-  try {
-    let profile;
+// async function loadAdminProfile() {
+//   try {
+//     let profile;
 
-    try {
-      profile = await apiRequest("/users/me");
-    } catch {
-      profile = await apiRequest("/user/me");
-    }
+//     try {
+//       profile = await apiRequest("/users/me");
+//     } catch {
+//       profile = await apiRequest("/user/me");
+//     }
 
-    els.adminName.textContent =
-      profile.fullName || profile.name || "Admin User";
+//     els.adminName.textContent =
+//       profile.fullName || profile.name || "Admin User";
 
-    els.adminRole.textContent =
-      profile.role
-        ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1)
-        : "Admin";
+//     els.adminRole.textContent =
+//       profile.role
+//         ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1)
+//         : "Admin";
 
-    if (profile.profileImage) {
-      els.adminAvatar.src = profile.profileImage;
-    }
-  } catch (error) {
-    console.error("Profile load failed:", error.message);
-    window.location.href = ROUTES.adminProfile;
-  }
-}
+//     if (profile.profileImage) {
+//       els.adminAvatar.src = profile.profileImage;
+//     }
+//   } catch (error) {
+//     console.error("Profile load failed:", error.message);
+//     window.location.href = ROUTES.adminProfile;
+//   }
+// }
 
 /* ---------------- DATA ---------------- */
 
@@ -231,7 +231,6 @@ async function handleLogout() {
 
 function bindUI() {
   els.searchInput.addEventListener("input", renderUsers);
-  bindLogout();
 
   els.logoutBtn.onclick = openLogoutModal;
 
@@ -252,9 +251,13 @@ els.confirmLogout?.addEventListener(
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  await requireRole("admin", ROUTES.adminLogin);
-
   bindUI();
-  await loadAdminProfile();
+
+  await loadAdminProfile({
+    nameEl: els.adminName,
+    roleEl: els.adminRole,
+    avatarEl: els.adminAvatar
+  });
+
   await loadUsers();
 });
