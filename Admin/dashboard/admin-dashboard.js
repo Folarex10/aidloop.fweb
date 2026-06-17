@@ -66,22 +66,7 @@ function bindUI() {
   els.goVerificationQueue.onclick = () => location.href = ROUTES.adminVerificationQueue;
   els.viewOrganizations.onclick = () => location.href = ROUTES.adminOrganizations;
   els.viewEvents.onclick = () => location.href = ROUTES.adminEvents;
-  els.logoutBtn.onclick = openLogoutModal;
-
-  els.closeLogoutModal?.addEventListener(
-  "click",
-  closeLogoutModal
-  );
-
-  els.cancelLogout?.addEventListener(
-  "click",
-  closeLogoutModal
-  );
-
-  els.confirmLogout?.addEventListener(
-  "click",
-  handleLogout
-  );
+  els.logoutBtn.onclick = () => logout(ROUTES.adminLogin);
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
