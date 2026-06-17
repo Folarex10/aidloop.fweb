@@ -58,6 +58,22 @@ export function getEventStatus(event) {
   return "published";
 }
 
+export function getStatusLabel(status) {
+  switch (status) {
+    case "published":
+      return "Published";
+
+    case "cancelled":
+      return "Cancelled";
+
+    case "draft":
+      return "Draft";
+
+    default:
+      return "Published";
+  }
+}
+
 /* ---------------- DATE / TIME ---------------- */
 
 export function formatDate(dateValue) {
