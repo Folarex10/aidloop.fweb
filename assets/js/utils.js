@@ -12,10 +12,32 @@ export function normalizeEvents(payload) {
   return [];
 }
 
+export function normalizeArray(payload, keys = []) {
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+
+  for (const key of keys) {
+    if (Array.isArray(payload?.[key])) {
+      return payload[key];
+    }
+  }
+
+  if (Array.isArray(payload?.data)) {
+    return payload.data;
+  }
+
+  return [];
+}
+
 export function formatDate(dateValue) {
   if (!dateValue) return "—";
+
   const date = new Date(dateValue);
-  if (Number.isNaN(date.getTime())) return dateValue;
+
+  if (Number.isNaN(date.getTime())) {
+    return dateValue;
+  }
 
   return date.toLocaleDateString("en-GB", {
     day: "2-digit",
