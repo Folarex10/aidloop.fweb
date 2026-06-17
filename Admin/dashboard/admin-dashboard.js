@@ -59,7 +59,7 @@ async function handleLogout() {
     els.confirmLogout.textContent = "Logging out...";
   }
 
-  await logout(ROUTES.adminLogin);
+  await logout(ROUTES.home);
 }
 
 function bindUI() {

@@ -116,34 +116,6 @@ function renderCertificates() {
   }).join("");
 }
 
-function openLogoutModal() {
-  els.logoutModal.classList.remove("hidden");
-}
-
-function closeLogoutModal() {
-  els.logoutModal.classList.add("hidden");
-  els.confirmLogout.disabled = false;
-  els.confirmLogout.textContent = "Yes, Log out";
-}
-
-async function handleLogout() {
-  try {
-    els.confirmLogout.disabled = true;
-    els.confirmLogout.textContent = "Logging out...";
-
-    await apiRequest("/auth/logout", {
-      method: "POST"
-    });
-  } catch (error) {
-    console.warn("Logout failed:", error.message);
-  } finally {
-    localStorage.clear();
-    sessionStorage.clear();
-    window.location.href = "../../index.html";
-  }
-}
-
-
 /* ---------------- LOAD ---------------- */
 
 async function loadCertificates() {
@@ -182,6 +154,27 @@ function bindFilters() {
   });
 }
 
+function openLogoutModal() {
+  els.logoutModal?.classList.remove("hidden");
+}
+
+function closeLogoutModal() {
+  els.logoutModal?.classList.add("hidden");
+
+  if (els.confirmLogout) {
+    els.confirmLogout.disabled = false;
+    els.confirmLogout.textContent = "Yes, Log out";
+  }
+}
+
+async function handleLogout() {
+  if (els.confirmLogout) {
+    els.confirmLogout.disabled = true;
+    els.confirmLogout.textContent = "Logging out...";
+  }
+
+  await logout(ROUTES.home);
+}
 
 /* ---------------- INIT ---------------- */
 
@@ -194,22 +187,22 @@ function bindUI() {
   //   logout(ROUTES.home);
   // });
 
- els.logoutBtn.addEventListener("click", openLogoutModal);
-  els.closeLogoutModal.addEventListener("click", closeLogoutModal);
-  els.cancelLogout.addEventListener("click", closeLogoutModal);
-  els.confirmLogout.addEventListener("click", handleLogout);
+  els.logoutBtn.onclick = openLogoutModal;
 
-  els.logoutModal.addEventListener("click", (event) => {
-    if (event.target === els.logoutModal) {
-      closeLogoutModal();
-    }
-  });
+  els.closeLogoutModal?.addEventListener(
+  "click",
+  closeLogoutModal
+);
 
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && !els.logoutModal.classList.contains("hidden")) {
-      closeLogoutModal();
-    }
-  });
+els.cancelLogout?.addEventListener(
+  "click",
+  closeLogoutModal
+);
+
+els.confirmLogout?.addEventListener(
+  "click",
+  handleLogout
+);
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
