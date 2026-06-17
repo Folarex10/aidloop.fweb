@@ -203,29 +203,7 @@ async function loadUsers() {
   }
 }
 
-/* ---------------- LOGOUT ---------------- */
 
-// function openLogoutModal() {
-//   els.logoutModal.classList.remove("hidden");
-// }
-
-// function closeLogoutModal() {
-//   els.logoutModal.classList.add("hidden");
-// }
-
-// function bindLogout() {
-//   els.logoutBtn.addEventListener("click", openLogoutModal);
-//   els.closeLogoutModal.addEventListener("click", closeLogoutModal);
-//   els.cancelLogout.addEventListener("click", closeLogoutModal);
-
-//   els.confirmLogout.addEventListener("click", () => {
-//     logout(ROUTES.adminLogin);
-//   });
-
-//   els.logoutModal.addEventListener("click", (e) => {
-//     if (e.target === els.logoutModal) closeLogoutModal();
-//   });
-// }
 
 function openLogoutModal() {
   els.logoutModal?.classList.remove("hidden");

@@ -44,19 +44,6 @@ export function formatLocation(event) {
   return event.city || event.state || "—";
 }
 
-/* ---------------- STATUS ---------------- */
-
-// export function getEventStatus(event) {
-//   const status = String(event.status || "").toLowerCase();
-
-//   if (status.includes("cancel")) return "cancelled";
-//   if (status.includes("draft")) return "draft";
-//   return "published";
-// }
-
-// export function getStatusLabel(status) {
-//   return status.charAt(0).toUpperCase() + status.slice(1);
-// }
 
 export function getEventStatus(event) {
   const status = String(event.status || "").toLowerCase();

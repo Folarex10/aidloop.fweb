@@ -1,14 +1,20 @@
 import { loadAdminProfile } from "../../assets/js/admin/admin-auth.js";
+
 import {
   fetchOrganizers,
   applyOverrides
 } from "../../assets/js/admin/admin-verification.js";
+
+import { logout } from "../../assets/js/logout.js";
+import { ROUTES } from "../../assets/js/config.js";
+
 
 const els = {
   searchInput: document.getElementById("searchInput"),
   orgTable: document.getElementById("orgTable"),
   pendingCount: document.getElementById("pendingCount"),
   filterButtons: document.querySelectorAll(".filter-btn"),
+  logoutBtn: document.getElementById("logoutBtn"),
   logoutModal: document.getElementById("logoutModal"),
   closeLogoutModal: document.getElementById("closeLogoutModal"),
   cancelLogout: document.getElementById("cancelLogout"),
@@ -99,9 +105,13 @@ function bindUI() {
     };
   });
 
-  els.logoutBtn.onclick = openLogoutModal;
+  
+  els.logoutBtn?.addEventListener(
+  "click",
+  openLogoutModal
+);
 
-els.closeLogoutModal?.addEventListener(
+  els.closeLogoutModal?.addEventListener(
   "click",
   closeLogoutModal
 );
