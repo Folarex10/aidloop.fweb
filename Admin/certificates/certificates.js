@@ -116,6 +116,28 @@ function renderCertificates() {
   }).join("");
 }
 
+function openLogoutModal() {
+  els.logoutModal?.classList.remove("hidden");
+}
+
+function closeLogoutModal() {
+  els.logoutModal?.classList.add("hidden");
+
+  if (els.confirmLogout) {
+    els.confirmLogout.disabled = false;
+    els.confirmLogout.textContent = "Yes, Log out";
+  }
+}
+
+async function handleLogout() {
+  if (els.confirmLogout) {
+    els.confirmLogout.disabled = true;
+    els.confirmLogout.textContent = "Logging out...";
+  }
+
+  await logout(ROUTES.home);
+}
+
 /* ---------------- LOAD ---------------- */
 
 async function loadCertificates() {
@@ -154,27 +176,6 @@ function bindFilters() {
   });
 }
 
-function openLogoutModal() {
-  els.logoutModal?.classList.remove("hidden");
-}
-
-function closeLogoutModal() {
-  els.logoutModal?.classList.add("hidden");
-
-  if (els.confirmLogout) {
-    els.confirmLogout.disabled = false;
-    els.confirmLogout.textContent = "Yes, Log out";
-  }
-}
-
-async function handleLogout() {
-  if (els.confirmLogout) {
-    els.confirmLogout.disabled = true;
-    els.confirmLogout.textContent = "Logging out...";
-  }
-
-  await logout(ROUTES.home);
-}
 
 /* ---------------- INIT ---------------- */
 
@@ -189,17 +190,17 @@ function bindUI() {
 
   els.logoutBtn.onclick = openLogoutModal;
 
-els.closeLogoutModal?.addEventListener(
+  els.closeLogoutModal?.addEventListener(
   "click",
   closeLogoutModal
 );
 
-els.cancelLogout?.addEventListener(
+  els.cancelLogout?.addEventListener(
   "click",
   closeLogoutModal
 );
 
-els.confirmLogout?.addEventListener(
+  els.confirmLogout?.addEventListener(
   "click",
   handleLogout
 );
