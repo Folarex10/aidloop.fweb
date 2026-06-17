@@ -16,7 +16,7 @@ const els = {
   logoutModal: document.getElementById("logoutModal"),
   closeLogoutModal: document.getElementById("closeLogoutModal"),
   cancelLogout: document.getElementById("cancelLogout"),
-  confirmLogout: document.getElementById("confirmLogout")
+  confirmLogout: document.getElementById("confirmLogout"),
   goVerificationQueue: document.getElementById("goVerificationQueue"),
   viewOrganizations: document.getElementById("viewOrganizations"),
   viewEvents: document.getElementById("viewEvents")
