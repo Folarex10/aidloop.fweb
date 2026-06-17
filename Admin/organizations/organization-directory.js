@@ -18,7 +18,11 @@ const els = {
   emptyState: document.getElementById("emptyState"),
   searchInput: document.getElementById("searchInput"),
   filterButtons: document.querySelectorAll(".filter-btn"),
-  logoutBtn: document.getElementById("logoutBtn")
+  logoutBtn: document.getElementById("logoutBtn"),
+  logoutModal: document.getElementById("logoutModal"),
+  closeLogoutModal: document.getElementById("closeLogoutModal"),
+  cancelLogout: document.getElementById("cancelLogout"),
+  confirmLogout: document.getElementById("confirmLogout")
 };
 
 let organizersCache = [];
@@ -70,13 +74,48 @@ function bindFilters() {
   });
 }
 
+function openLogoutModal() {
+  els.logoutModal?.classList.remove("hidden");
+}
+
+function closeLogoutModal() {
+  els.logoutModal?.classList.add("hidden");
+
+  if (els.confirmLogout) {
+    els.confirmLogout.disabled = false;
+    els.confirmLogout.textContent = "Yes, Log out";
+  }
+}
+
+async function handleLogout() {
+  if (els.confirmLogout) {
+    els.confirmLogout.disabled = true;
+    els.confirmLogout.textContent = "Logging out...";
+  }
+
+  await logout(ROUTES.home);
+}
+
 function bindUI() {
   els.searchInput.addEventListener("input", renderDirectory);
   bindFilters();
 
-  els.logoutBtn?.addEventListener("click", () => {
-    logout(ROUTES.landing);
-  });
+  els.logoutBtn.onclick = openLogoutModal;
+
+  els.closeLogoutModal?.addEventListener(
+    "click",
+    closeLogoutModal
+  );
+
+  els.cancelLogout?.addEventListener(
+    "click",
+    closeLogoutModal
+  );
+
+  els.confirmLogout?.addEventListener(
+    "click",
+    handleLogout
+  );
 }
 
 document.addEventListener("DOMContentLoaded", async () => {

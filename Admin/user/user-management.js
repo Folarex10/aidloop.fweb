@@ -205,26 +205,48 @@ async function loadUsers() {
 
 /* ---------------- LOGOUT ---------------- */
 
+// function openLogoutModal() {
+//   els.logoutModal.classList.remove("hidden");
+// }
+
+// function closeLogoutModal() {
+//   els.logoutModal.classList.add("hidden");
+// }
+
+// function bindLogout() {
+//   els.logoutBtn.addEventListener("click", openLogoutModal);
+//   els.closeLogoutModal.addEventListener("click", closeLogoutModal);
+//   els.cancelLogout.addEventListener("click", closeLogoutModal);
+
+//   els.confirmLogout.addEventListener("click", () => {
+//     logout(ROUTES.adminLogin);
+//   });
+
+//   els.logoutModal.addEventListener("click", (e) => {
+//     if (e.target === els.logoutModal) closeLogoutModal();
+//   });
+// }
+
 function openLogoutModal() {
-  els.logoutModal.classList.remove("hidden");
+  els.logoutModal?.classList.remove("hidden");
 }
 
 function closeLogoutModal() {
-  els.logoutModal.classList.add("hidden");
+  els.logoutModal?.classList.add("hidden");
+
+  if (els.confirmLogout) {
+    els.confirmLogout.disabled = false;
+    els.confirmLogout.textContent = "Yes, Log out";
+  }
 }
 
-function bindLogout() {
-  els.logoutBtn.addEventListener("click", openLogoutModal);
-  els.closeLogoutModal.addEventListener("click", closeLogoutModal);
-  els.cancelLogout.addEventListener("click", closeLogoutModal);
+async function handleLogout() {
+  if (els.confirmLogout) {
+    els.confirmLogout.disabled = true;
+    els.confirmLogout.textContent = "Logging out...";
+  }
 
-  els.confirmLogout.addEventListener("click", () => {
-    logout(ROUTES.adminLogin);
-  });
-
-  els.logoutModal.addEventListener("click", (e) => {
-    if (e.target === els.logoutModal) closeLogoutModal();
-  });
+  await logout(ROUTES.home);
 }
 
 /* ---------------- INIT ---------------- */
@@ -232,6 +254,23 @@ function bindLogout() {
 function bindUI() {
   els.searchInput.addEventListener("input", renderUsers);
   bindLogout();
+
+  els.logoutBtn.onclick = openLogoutModal;
+
+els.closeLogoutModal?.addEventListener(
+  "click",
+  closeLogoutModal
+);
+
+els.cancelLogout?.addEventListener(
+  "click",
+  closeLogoutModal
+);
+
+els.confirmLogout?.addEventListener(
+  "click",
+  handleLogout
+);
 }
 
 document.addEventListener("DOMContentLoaded", async () => {

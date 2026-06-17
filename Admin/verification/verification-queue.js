@@ -8,7 +8,11 @@ const els = {
   searchInput: document.getElementById("searchInput"),
   orgTable: document.getElementById("orgTable"),
   pendingCount: document.getElementById("pendingCount"),
-  filterButtons: document.querySelectorAll(".filter-btn")
+  filterButtons: document.querySelectorAll(".filter-btn"),
+  logoutModal: document.getElementById("logoutModal"),
+  closeLogoutModal: document.getElementById("closeLogoutModal"),
+  cancelLogout: document.getElementById("cancelLogout"),
+  confirmLogout: document.getElementById("confirmLogout")
 };
 
 let organizers = [];
@@ -61,6 +65,28 @@ function renderTable() {
   });
 }
 
+function openLogoutModal() {
+  els.logoutModal?.classList.remove("hidden");
+}
+
+function closeLogoutModal() {
+  els.logoutModal?.classList.add("hidden");
+
+  if (els.confirmLogout) {
+    els.confirmLogout.disabled = false;
+    els.confirmLogout.textContent = "Yes, Log out";
+  }
+}
+
+async function handleLogout() {
+  if (els.confirmLogout) {
+    els.confirmLogout.disabled = true;
+    els.confirmLogout.textContent = "Logging out...";
+  }
+
+  await logout(ROUTES.home);
+}
+
 function bindUI() {
   els.searchInput.oninput = renderTable;
 
@@ -72,6 +98,23 @@ function bindUI() {
       renderTable();
     };
   });
+
+  els.logoutBtn.onclick = openLogoutModal;
+
+els.closeLogoutModal?.addEventListener(
+  "click",
+  closeLogoutModal
+);
+
+els.cancelLogout?.addEventListener(
+  "click",
+  closeLogoutModal
+);
+
+els.confirmLogout?.addEventListener(
+  "click",
+  handleLogout
+);
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
