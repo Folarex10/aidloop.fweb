@@ -1,4 +1,5 @@
 import { apiRequest } from "../api.js";
+import { ROUTES } from "../config.js";
 
 export async function loadOrganizerProfile({
   nameEl,
@@ -31,15 +32,33 @@ export async function loadOrganizerProfile({
 }
 
 
+// export async function requireOrganizer() {
+//   const profile = await apiRequest("/user/me");
+
+//   const role = String(
+//     profile.role || ""
+//   ).toLowerCase();
+
+//   if (role !== "organizer") {
+//     window.location.href = ROUTES.organizerLogin;
+//     return null;
+//   }
+
+//   return profile;
+// }
+
+
 export async function requireOrganizer() {
   const profile = await apiRequest("/user/me");
 
-  const role = String(
-    profile.role || ""
-  ).toLowerCase();
+  console.log("Organizer profile:", profile);
+
+  const role = String(profile.role || "").toLowerCase();
+
+  console.log("Detected role:", role);
 
   if (role !== "organizer") {
-    window.location.href = ROUTES.organizerLogin;
+    console.log("Role check failed");
     return null;
   }
 

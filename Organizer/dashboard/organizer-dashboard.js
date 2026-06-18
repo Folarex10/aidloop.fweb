@@ -305,6 +305,12 @@ document.addEventListener(
 
     bindUI();
 
+    console.log("Dashboard loading...");
+
     await loadDashboard();
+
+    organizer = await requireOrganizer();
+
+    console.log("Organizer returned:", organizer);
   }
 );
