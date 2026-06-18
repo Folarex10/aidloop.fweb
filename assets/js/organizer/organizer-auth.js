@@ -1,0 +1,59 @@
+import { apiRequest } from "../api.js";
+
+export async function loadOrganizerProfile({
+  nameEl,
+  roleEl,
+  avatarEl
+} = {}) {
+
+  let profile;
+
+  try {
+    profile = await apiRequest("/users/me");
+  } catch {
+    profile = await apiRequest("/user/me");
+  }
+
+  if (nameEl) {
+    nameEl.textContent =
+      profile.fullName ||
+      profile.name ||
+      "Organizer";
+  }
+
+  if (roleEl) {
+    roleEl.textContent =
+      profile.role
+        ? profile.role.charAt(0).toUpperCase() +
+          profile.role.slice(1)
+        : "Organizer";
+  }
+
+  if (avatarEl && profile.profileImage) {
+    avatarEl.src = profile.profileImage;
+  }
+
+  return profile;
+}
+
+export async function requireOrganizer() {
+
+  let profile;
+
+  try {
+    profile = await apiRequest("/users/me");
+  } catch {
+    profile = await apiRequest("/user/me");
+  }
+
+  const role = String(
+    profile.role || ""
+  ).toLowerCase();
+
+  if (role !== "organizer") {
+    window.location.href = "../../login.html";
+    return null;
+  }
+
+  return profile;
+}

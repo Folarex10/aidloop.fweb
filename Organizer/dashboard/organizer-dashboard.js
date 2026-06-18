@@ -1,8 +1,11 @@
-import { apiRequest, normalizeArray } from "../../assets/js/api.js";
-import { requireOrganizer } from "../../assets/js/auth.js";
+import { apiRequest } from "../../assets/js/api.js";
+import {
+  requireOrganizer,
+  loadOrganizerProfile
+} from "../../assets/js/organizer/organizer-auth.js";
 import { logout } from "../../assets/js/logout.js";
 import { ROUTES } from "../../assets/js/config.js";
-import { formatDate, getLocationText } from "../../assets/js/utils.js";
+import {  normalizeArray, formatDate, getLocationText } from "../../assets/js/utils.js";
 
 const els = {
   totalEvents: document.getElementById("totalEvents"),
@@ -153,6 +156,12 @@ async function loadDashboard() {
   try {
 
     organizer = await requireOrganizer();
+
+    await loadOrganizerProfile({
+  nameEl: document.getElementById("organizerName"),
+  roleEl: document.getElementById("organizerRole"),
+  avatarEl: document.getElementById("organizerAvatar")
+});
 
     if (!organizer) return;
 

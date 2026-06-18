@@ -45,3 +45,17 @@ export function formatDate(dateValue) {
     year: "numeric"
   });
 }
+
+export function getLocationText(event) {
+  if (typeof event.location === "string" && event.location.trim()) {
+    return event.location;
+  }
+  if (event.location && typeof event.location === "object") {
+    return (
+      [event.location.venue, event.location.city || event.location.state]
+        .filter(Boolean)
+        .join(", ") || "—"
+    );
+  }
+  return "—";
+}
