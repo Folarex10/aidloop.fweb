@@ -159,6 +159,8 @@ async function loadDashboard() {
 
     organizer = await requireOrganizer();
 
+    console.log(JSON.stringify(organizer, null, 2));
+
     console.log("STEP 2: Organizer =", organizer);
 
     await loadOrganizerProfile({
