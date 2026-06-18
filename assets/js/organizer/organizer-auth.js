@@ -6,13 +6,7 @@ export async function loadOrganizerProfile({
   avatarEl
 } = {}) {
 
-  let profile;
-
-  try {
-    profile = await apiRequest("/users/me");
-  } catch {
-    profile = await apiRequest("/user/me");
-  }
+  const profile = await apiRequest("/user/me");
 
   if (nameEl) {
     nameEl.textContent =
@@ -36,22 +30,16 @@ export async function loadOrganizerProfile({
   return profile;
 }
 
+
 export async function requireOrganizer() {
-
-  let profile;
-
-  try {
-    profile = await apiRequest("/users/me");
-  } catch {
-    profile = await apiRequest("/user/me");
-  }
+  const profile = await apiRequest("/user/me");
 
   const role = String(
     profile.role || ""
   ).toLowerCase();
 
   if (role !== "organizer") {
-    window.location.href = "../../login.html";
+    window.location.href = ROUTES.organizerLogin;
     return null;
   }
 
