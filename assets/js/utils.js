@@ -46,16 +46,33 @@ export function formatDate(dateValue) {
   });
 }
 
-export function getLocationText(event) {
-  if (typeof event.location === "string" && event.location.trim()) {
-    return event.location;
+export function getLocationText(item) {
+
+  if (
+    typeof item.location === "string" &&
+    item.location.trim()
+  ) {
+    return item.location;
   }
-  if (event.location && typeof event.location === "object") {
+
+  if (
+    item.location &&
+    typeof item.location === "object"
+  ) {
     return (
-      [event.location.venue, event.location.city || event.location.state]
+      [
+        item.location.venue,
+        item.location.city ||
+        item.location.state
+      ]
         .filter(Boolean)
         .join(", ") || "—"
     );
   }
-  return "—";
+
+  return (
+    item.city ||
+    item.state ||
+    "—"
+  );
 }
