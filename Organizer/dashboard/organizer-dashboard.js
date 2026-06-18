@@ -155,7 +155,11 @@ async function loadDashboard() {
 
   try {
 
+     console.log("STEP 1: Dashboard loading");
+
     organizer = await requireOrganizer();
+
+    console.log("STEP 2: Organizer =", organizer);
 
     await loadOrganizerProfile({
   nameEl: document.getElementById("organizerName"),
@@ -163,38 +167,32 @@ async function loadDashboard() {
   avatarEl: document.getElementById("organizerAvatar")
 });
 
-console.log("STEP 5: Fetching events...");
 
-const payload = await apiRequest("/events");
 
-console.log("STEP 6: Raw payload =", payload);
-
-const allEvents =
-  normalizeArray(payload, ["events"]);
-
-console.log("STEP 7: Normalized events =", allEvents);
-
-const organizerId = String(
-  organizer._id ||
-  organizer.id ||
-  ""
-);
-
-console.log("STEP 8: Organizer ID =", organizerId);
-
-    if (!organizer) return;
+   
+    if (!organizer) {
+      console.log("STEP 3: Organizer not found");
+      return;
+    }
 
     const payload =
       await apiRequest("/events");
 
+      console.log("STEP 4: Raw payload =", payload);
+
     const allEvents =
       normalizeArray(payload, ["events"]);
+
+      console.log("STEP 5: All events =", allEvents);
 
     const organizerId = String(
       organizer._id ||
       organizer.id ||
       ""
     );
+
+    console.log("STEP 6: Organizer ID =", organizerId);
+
 
     eventsCache = allEvents.filter((event) => {
 
@@ -217,7 +215,8 @@ console.log("STEP 8: Organizer ID =", organizerId);
       );
     });
 
-    console.log("STEP 9: Filtered events =", eventsCache);
+
+    console.log("STEP 7: Filtered events =", eventsCache);
 
     renderDashboard();
 
