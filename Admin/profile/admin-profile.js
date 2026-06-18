@@ -1,5 +1,7 @@
 import { apiRequest } from "../../assets/js/api.js";
-import { requireRole } from "../../assets/js/auth.js";
+import {
+  loadAdminProfile as loadAdminHeader
+} from "../../assets/js/admin/admin-auth.js";
 import { logout } from "../../assets/js/logout.js";
 import { ROUTES } from "../../assets/js/config.js";
 
@@ -180,31 +182,32 @@ async function handleLogout() {
 /* ---------------- INIT ---------------- */
 
 document.addEventListener("DOMContentLoaded", async () => {
-  await requireRole("admin", ROUTES.adminLogin);
+
+  await loadAdminHeader({
+    nameEl: els.adminNameMini,
+    roleEl: els.adminRoleMini,
+    avatarEl: els.adminAvatar
+  });
 
   els.editProfileBtn.addEventListener("click", handleEditProfile);
   els.passwordForm.addEventListener("submit", updatePassword);
 
-  // els.logoutBtn.addEventListener("click", () => {
-  //   logout(ROUTES.adminLogin);
-  // });
-
   els.logoutBtn.onclick = openLogoutModal;
 
-els.closeLogoutModal?.addEventListener(
-  "click",
-  closeLogoutModal
-);
+  els.closeLogoutModal?.addEventListener(
+    "click",
+    closeLogoutModal
+  );
 
-els.cancelLogout?.addEventListener(
-  "click",
-  closeLogoutModal
-);
+  els.cancelLogout?.addEventListener(
+    "click",
+    closeLogoutModal
+  );
 
-els.confirmLogout?.addEventListener(
-  "click",
-  handleLogout
-);
+  els.confirmLogout?.addEventListener(
+    "click",
+    handleLogout
+  );
 
   await loadProfile();
 });
