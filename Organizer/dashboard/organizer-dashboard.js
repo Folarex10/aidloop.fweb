@@ -185,17 +185,25 @@ async function loadDashboard() {
 
       console.log("STEP 5: All events =", allEvents);
 
-      console.log("FIRST EVENT =", allEvents[0]);
+      console.log(
+      "FIRST EVENT JSON =",
+      JSON.stringify(allEvents[0], null, 2)
+      );
 
       console.log(
-      "EVENT OWNERSHIP FIELDS =",
-        allEvents.map(event => ({
+      "EVENT OWNERSHIP FIELDS JSON =",
+      JSON.stringify(
+      allEvents.map(event => ({
       name: event.name,
       organizer: event.organizer,
-     organizerId: event.organizerId,
+      organizerId: event.organizerId,
       createdBy: event.createdBy,
-      userId: event.userId
-  }))
+      userId: event.userId,
+      owner: event.owner
+    })),
+    null,
+    2
+  )
 );
 
     const organizerId = String(
