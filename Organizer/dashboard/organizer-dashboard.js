@@ -163,6 +163,25 @@ async function loadDashboard() {
   avatarEl: document.getElementById("organizerAvatar")
 });
 
+console.log("STEP 5: Fetching events...");
+
+const payload = await apiRequest("/events");
+
+console.log("STEP 6: Raw payload =", payload);
+
+const allEvents =
+  normalizeArray(payload, ["events"]);
+
+console.log("STEP 7: Normalized events =", allEvents);
+
+const organizerId = String(
+  organizer._id ||
+  organizer.id ||
+  ""
+);
+
+console.log("STEP 8: Organizer ID =", organizerId);
+
     if (!organizer) return;
 
     const payload =
@@ -197,6 +216,8 @@ async function loadDashboard() {
         organizerId
       );
     });
+
+    console.log("STEP 9: Filtered events =", eventsCache);
 
     renderDashboard();
 
