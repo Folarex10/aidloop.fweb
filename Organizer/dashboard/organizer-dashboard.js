@@ -178,7 +178,7 @@ async function loadDashboard() {
     }
 
     const payload =
-      await apiRequest("/events");
+      await apiRequest("/events/my-events");
 
       console.log("STEP 4: Raw payload =", payload);
 
