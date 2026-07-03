@@ -219,25 +219,45 @@ async function loadDashboard() {
 
     eventsCache = allEvents.filter((event) => {
 
-      if (
-        typeof event.organizer === "object" &&
-        event.organizer
-      ) {
-        return (
-          String(
-            event.organizer._id ||
-            event.organizer.id ||
-            ""
-          ) === organizerId
-        );
-      }
+  // Backend currently stores owner here
+  if (typeof event.organizationId === "string") {
+    return event.organizationId === organizerId;
+  }
 
-      return (
-        String(event.organizerId || "") ===
-        organizerId
-      );
-    });
+  // Sometimes populated
+  if (
+    event.organizationId &&
+    typeof event.organizationId === "object"
+  ) {
+    return (
+      String(
+        event.organizationId._id ||
+        event.organizationId.id ||
+        ""
+      ) === organizerId
+    );
+  }
 
+  // Future-proof support
+  if (
+    event.organizer &&
+    typeof event.organizer === "object"
+  ) {
+    return (
+      String(
+        event.organizer._id ||
+        event.organizer.id ||
+        ""
+      ) === organizerId
+    );
+  }
+
+  return (
+    String(
+      event.organizerId || ""
+    ) === organizerId
+  );
+});
 
     console.log("STEP 7: Filtered events =", eventsCache);
 
@@ -329,18 +349,6 @@ function bindUI() {
     }
   });
 }
-
-/* ---------------- UI ---------------- */
-
-// function bindUI() {
-//   els.logoutBtn?.addEventListener("click", async (e) => {
-//     e.preventDefault();
-//     await logout(ROUTES.organizerLogin);
-//   });
-// }
-/* ==================================================
-   INIT
-================================================== */
 
 document.addEventListener(
   "DOMContentLoaded",
