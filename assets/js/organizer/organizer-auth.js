@@ -7,7 +7,10 @@ export async function loadOrganizerProfile({
   avatarEl
 } = {}) {
 
-  const profile = await apiRequest("/user/me");
+  const response = await apiRequest("/user/me");
+
+  // Backend may return { user: {...} } or just the user object
+  const profile = response.user || response;
 
   if (nameEl) {
     nameEl.textContent =
@@ -31,27 +34,16 @@ export async function loadOrganizerProfile({
   return profile;
 }
 
-
-// export async function requireOrganizer() {
-//   const profile = await apiRequest("/user/me");
-
-//   const role = String(
-//     profile.role || ""
-//   ).toLowerCase();
-
-//   if (role !== "organizer") {
-//     window.location.href = ROUTES.organizerLogin;
-//     return null;
-//   }
-
-//   return profile;
-// }
-
-
 export async function requireOrganizer() {
-  const profile = await apiRequest("/user/me");
 
-  console.log("Organizer profile:", profile);
+  const response = await apiRequest("/user/me");
+
+  console.log("Organizer profile:", response);
+
+  // Extract the actual user object
+  const profile = response.user || response;
+
+  console.log("Organizer object:", profile);
 
   const role = String(profile.role || "").toLowerCase();
 
@@ -59,6 +51,7 @@ export async function requireOrganizer() {
 
   if (role !== "organizer") {
     console.log("Role check failed");
+    window.location.href = ROUTES.organizerLogin;
     return null;
   }
 
