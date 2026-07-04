@@ -38,16 +38,10 @@ export async function requireOrganizer() {
 
   const response = await apiRequest("/user/me");
 
-  console.log("Organizer profile:", response);
-
   // Extract the actual user object
   const profile = response.user || response;
 
-  console.log("Organizer object:", profile);
-
   const role = String(profile.role || "").toLowerCase();
-
-  console.log("Detected role:", role);
 
   if (role !== "organizer") {
     console.log("Role check failed");

@@ -1,5 +1,5 @@
 import { apiRequest, normalizeArray } from "../../assets/js/api.js";
-import { requireOrganizer } from "../../assets/js/auth.js";
+import { requireOrganizer } from "../../assets/js/organizer/organizer-auth.js";
 import { logout } from "../../assets/js/logout.js";
 import { ROUTES } from "../../assets/js/config.js";
 import { formatDate, getLocationText } from "../../assets/js/utils.js";

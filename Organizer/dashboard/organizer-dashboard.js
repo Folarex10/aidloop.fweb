@@ -91,6 +91,7 @@ function renderDashboard() {
       sum + (
         event.filledSlots ??
         event.registrationsCount ??
+        event.registeredCount ??
         0
       ),
     0
@@ -130,6 +131,7 @@ function renderDashboard() {
             ${
               event.filledSlots ??
               event.registrationsCount ??
+              event.registeredCount ??
               0
             }
             /
@@ -155,13 +157,9 @@ async function loadDashboard() {
 
   try {
 
-     console.log("STEP 1: Dashboard loading");
-
     organizer = await requireOrganizer();
 
     console.log(JSON.stringify(organizer, null, 2));
-
-    console.log("STEP 2: Organizer =", organizer);
 
     await loadOrganizerProfile({
   nameEl: document.getElementById("organizerName"),
@@ -173,48 +171,21 @@ async function loadDashboard() {
 
    
     if (!organizer) {
-      console.log("STEP 3: Organizer not found");
       return;
     }
 
     const payload =
       await apiRequest("/events/my-events");
 
-      console.log("STEP 4: Raw payload =", payload);
-
     const allEvents =
       normalizeArray(payload, ["events"]);
 
-      console.log("STEP 5: All events =", allEvents);
-
-      console.log(
-      "FIRST EVENT JSON =",
-      JSON.stringify(allEvents[0], null, 2)
-      );
-
-      console.log(
-      "EVENT OWNERSHIP FIELDS JSON =",
-      JSON.stringify(
-      allEvents.map(event => ({
-      name: event.name,
-      organizer: event.organizer,
-      organizerId: event.organizerId,
-      createdBy: event.createdBy,
-      userId: event.userId,
-      owner: event.owner
-    })),
-    null,
-    2
-  )
-);
 
     const organizerId = String(
       organizer._id ||
       organizer.id ||
       ""
     );
-
-    console.log("STEP 6: Organizer ID =", organizerId);
 
 
     eventsCache = allEvents.filter((event) => {
@@ -258,8 +229,6 @@ async function loadDashboard() {
     ) === organizerId
   );
 });
-
-    console.log("STEP 7: Filtered events =", eventsCache);
 
     renderDashboard();
 
