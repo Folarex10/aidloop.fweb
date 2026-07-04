@@ -384,7 +384,7 @@ function handleImageChange(event) {
 
 }
 
-/* -------------------------------------------------- */
+/* ---------------- IMAGE UPLOAD ---------------- */
 
 async function uploadImage(file) {
 
@@ -499,40 +499,39 @@ function getPayload(imageUrl) {
 
 /* ---------------- IMAGE UPLOAD ---------------- */
 
-async function uploadImage(file) {
-  if (!file) return "";
+// async function uploadImage(file) {
+//   if (!file) return "";
 
-  try {
-    setMessage("Uploading image...");
+//   try {
+//     setMessage("Uploading image...");
 
-    const formData = new FormData();
-    formData.append("image", file);
+//     const formData = new FormData();
+//     formData.append("image", file);
 
-    const response = await fetch(
-      "https://aidloop-backend.onrender.com/api/upload/event-image",
-      {
-        method: "POST",
-        credentials: "include",
-        body: formData
-      }
-    );
+//     const response = await fetch(`${API_BASE_URL}/upload/event-image`,
+//       {
+//         method: "POST",
+//         credentials: "include",
+//         body: formData
+//       }
+//     );
 
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.message || "Image upload failed");
-    }
+//     if (!response.ok) {
+//       const err = await response.json();
+//       throw new Error(err.message || "Image upload failed");
+//     }
 
-    const data = await response.json();
+//     const data = await response.json();
 
-    console.log("Upload response:", data);
+//     console.log("Upload response:", data);
 
-    return data.imageUrl;
+//     return data.imageUrl;
 
-  } catch (err) {
-    console.error(err);
-    throw err;
-  }
-}
+//   } catch (err) {
+//     console.error(err);
+//     throw err;
+//   }
+// }
 
 /* ---------------- CREATE / UPDATE ---------------- */
 
