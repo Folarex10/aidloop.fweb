@@ -68,8 +68,12 @@ function renderRoles() {
 /* ---------------- IMAGE ---------------- */
 
 function handleImageChange(e) {
+   console.log("Image selected");
+
   const file = e.target.files?.[0];
   if (!file) return;
+
+   console.log(file);
 
   imageFile = file;
 
@@ -203,6 +207,12 @@ async function loadEvent() {
 /* ---------------- UI ---------------- */
 
 function bindUI() {
+
+  els.imageBox?.addEventListener("click", () => {
+    console.log("Image box clicked");
+    els.imageInput.click();
+});
+
   els.addRole?.addEventListener("click", () => {
     const val = els.roleInput.value.trim();
     if (!val || roles.includes(val)) return;
