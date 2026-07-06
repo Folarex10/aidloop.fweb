@@ -159,8 +159,6 @@ async function loadDashboard() {
 
     organizer = await requireOrganizer();
 
-    console.log(JSON.stringify(organizer, null, 2));
-
     await loadOrganizerProfile({
   nameEl: document.getElementById("organizerName"),
   roleEl: document.getElementById("organizerRole"),
@@ -325,12 +323,8 @@ document.addEventListener(
 
     bindUI();
 
-    console.log("Dashboard loading...");
-
     await loadDashboard();
 
     organizer = await requireOrganizer();
-
-    console.log("Organizer returned:", organizer);
   }
 );

@@ -263,7 +263,7 @@ import {
 } from "../../assets/js/config.js";
 
 import { requireOrganizer } from "../../assets/js/organizer/organizer-auth.js";
-import { logout } from "../../assets/js/logout.js";
+import { initOrganizerLogout } from "../../assets/js/organizer/organizer-logout.js";
 
 const els = {
   form: document.getElementById("eventForm"),
@@ -776,14 +776,14 @@ function bindUI() {
     }
   );
 
-  els.logoutBtn?.addEventListener(
-    "click",
-    () => {
+  // els.logoutBtn?.addEventListener(
+  //   "click",
+  //   () => {
 
-      logout(ROUTES.organizerLogin);
+  //     logout(ROUTES.organizerLogin);
 
-    }
-  );
+  //   }
+  // );
 
 }
 
@@ -798,6 +798,8 @@ document.addEventListener(
     try {
 
       await requireOrganizer();
+
+      initOrganizerLogout();
 
       bindUI();
 
