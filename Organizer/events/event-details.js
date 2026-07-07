@@ -1,241 +1,415 @@
-import { apiRequest, normalizeArray } from "../../assets/js/api.js";
-import { requireOrganizer } from "../../assets/js/organizer/organizer-auth.js";
-import { logout } from "../../assets/js/logout.js";
+import { apiRequest } from "../../assets/js/api.js";
+import {
+  requireOrganizer,
+  loadOrganizerProfile
+} from "../../assets/js/organizer/organizer-auth.js";
 import { ROUTES } from "../../assets/js/config.js";
-import { formatDate, getLocationText } from "../../assets/js/utils.js";
+import { initLogoutModal } from "../../assets/js/logout.js";
+import {
+  formatDate,
+  getLocationText
+} from "../../assets/js/utils.js";
+
+/* ==================================================
+   ELEMENTS
+================================================== */
 
 const els = {
+
   name: document.getElementById("eventName"),
   image: document.getElementById("eventImage"),
   description: document.getElementById("eventDescription"),
+
   time: document.getElementById("eventTime"),
   date: document.getElementById("eventDate"),
   location: document.getElementById("eventLocation"),
+
   requirements: document.getElementById("requirementsList"),
+
   totalSlots: document.getElementById("totalSlots"),
   registered: document.getElementById("registered"),
   remaining: document.getElementById("remaining"),
+
   table: document.getElementById("volunteerTable"),
+
   statusBadge: document.getElementById("statusBadge"),
-  cancelBtn: document.getElementById("cancelBtn"),
-  editBtn: document.getElementById("editBtn"),
-  logoutBtn: document.getElementById("logoutBtn"),
-  feedback: document.getElementById("feedback") // ✅ added
+
+  organizerAvatar:
+    document.getElementById("organizerAvatar"),
+
+  editBtn:
+    document.getElementById("editBtn"),
+
+  cancelBtn:
+    document.getElementById("cancelBtn"),
+
+  logoutBtn:
+    document.getElementById("logoutBtn"),
+
+  logoutModal:
+    document.getElementById("logoutModal"),
+
+  closeLogoutModal:
+    document.getElementById("closeLogoutModal"),
+
+  cancelLogout:
+    document.getElementById("cancelLogout"),
+
+  confirmLogout:
+    document.getElementById("confirmLogout")
+
 };
 
-const eventId = new URLSearchParams(window.location.search).get("id");
+const eventId =
+  new URLSearchParams(window.location.search)
+    .get("id");
+
+let organizer = null;
 
 let eventData = null;
 
-/* ---------------- FEEDBACK ---------------- */
-
-function setFeedback(message, type = "") {
-  if (!els.feedback) return;
-
-  els.feedback.textContent = message;
-  els.feedback.className = "feedback";
-
-  if (type) {
-    els.feedback.classList.add(type);
-  }
-}
-
-/* ---------------- STATUS ---------------- */
+/* ==================================================
+   STATUS
+================================================== */
 
 function getEventStatus(event) {
-  const raw = String(event.status || "").toLowerCase();
 
-  if (raw === "cancelled" || raw === "canceled") return "cancelled";
-  if (raw === "draft") return "draft";
+  const raw =
+    String(event.status || "").toLowerCase();
 
-  const eventDate = event.date ? new Date(event.date) : null;
+  switch (raw) {
 
-  if (raw === "published" && eventDate && eventDate < new Date()) {
-    return "completed";
+    case "draft":
+      return "draft";
+
+    case "published":
+      return "published";
+
+    case "completed":
+      return "completed";
+
+    case "cancelled":
+    case "canceled":
+      return "cancelled";
+
+    default:
+      return "draft";
+
   }
 
-  return "published";
 }
 
-function setStatus(status) {
-  if (!els.statusBadge) return;
+function renderStatus(status) {
 
   els.statusBadge.textContent = status;
-  els.statusBadge.className = "status-badge";
-  els.statusBadge.classList.add(`status-${status}`);
+
+  els.statusBadge.className =
+    `status-badge status-${status}`;
+
 }
 
-/* ---------------- LOAD EVENT ---------------- */
+/* ==================================================
+   RENDER EVENT
+================================================== */
+
+function renderEvent() {
+
+  if (!eventData) return;
+
+  els.name.textContent =
+    eventData.name || "Untitled Event";
+
+  els.image.src =
+    eventData.image ||
+    "../../assets/Images/volunteer.png";
+
+  els.description.textContent =
+    eventData.description ||
+    "No description available.";
+
+  els.time.textContent =
+    `${eventData.startTime || "--"} - ${eventData.endTime || "--"}`;
+
+  els.date.textContent =
+    formatDate(eventData.date, "long");
+
+  els.location.textContent =
+    getLocationText(eventData);
+
+  renderStatus(
+    getEventStatus(eventData)
+  );
+
+  els.requirements.innerHTML =
+    (eventData.requirements || [])
+      .map(req => `<li>${req}</li>`)
+      .join("");
+
+  const registered =
+    eventData.registeredCount || 0;
+
+  const slots =
+    eventData.volunteerSlots || 0;
+
+  els.totalSlots.textContent =
+    slots;
+
+  els.registered.textContent =
+    registered;
+
+  els.remaining.textContent =
+    Math.max(slots - registered, 0);
+
+}
+/* ==================================================
+   LOAD EVENT
+================================================== */
 
 async function loadEvent() {
+
   if (!eventId) {
-    setFeedback("Invalid event ID.", "error");
+
+    els.name.textContent =
+      "Invalid Event";
+
     return;
   }
 
   try {
-    setFeedback("Loading event...");
 
-    const payload = await apiRequest("/events");
-    const events = normalizeArray(payload, ["events"]);
+    const response =
+      await apiRequest(`/events/${eventId}`);
 
-    eventData = events.find(
-      (e) => String(e._id || e.id) === String(eventId)
-    );
+    eventData =
+      response.data || response.event || response;
 
-    if (!eventData) {
-      setFeedback("Event not found.", "error");
-      return;
-    }
-
-    /* Populate UI safely */
-    if (els.name) els.name.textContent = eventData.name || "Untitled Event";
-    if (els.image) els.image.src = eventData.image || "";
-
-    if (els.description) {
-      els.description.textContent =
-        eventData.description || "No description available.";
-    }
-
-    if (els.time) {
-      els.time.textContent = `${eventData.startTime || ""} - ${eventData.endTime || ""}`;
-    }
-
-    if (els.date) {
-      els.date.textContent = formatDate(eventData.date, "long");
-    }
-
-    if (els.location) {
-      els.location.textContent = getLocationText(eventData);
-    }
-
-    setStatus(getEventStatus(eventData));
-
-    /* Requirements */
-    if (els.requirements) {
-      els.requirements.innerHTML =
-        (eventData.requirements || [])
-          .map((r) => `<li>${r}</li>`)
-          .join("") || "<li>No requirements</li>";
-    }
-
-    /* Stats */
-    if (els.totalSlots) {
-      els.totalSlots.textContent = eventData.volunteerSlots || 0;
-    }
-
-    await loadVolunteers();
-
-    setFeedback("Event loaded successfully.", "success");
+    renderEvent();
 
   } catch (error) {
-    console.error("Load event failed:", error.message);
-    setFeedback(error.message || "Failed to load event.", "error");
+
+    console.error(
+      "Failed to load event:",
+      error
+    );
+
+    els.name.textContent =
+      "Unable to load event";
+
+    els.description.textContent =
+      error.message ||
+      "Something went wrong while loading this event.";
+
   }
+
 }
 
-/* ---------------- VOLUNTEERS ---------------- */
+/* ==================================================
+   LOAD VOLUNTEERS
+================================================== */
 
 async function loadVolunteers() {
+
   try {
-    const data = await apiRequest(
-      `/applications/events/${eventId}/registrations`
-    );
 
-    const volunteers = Array.isArray(data)
-      ? data
-      : data?.data || [];
+    const response =
+      await apiRequest(
+        `/applications/events/${eventId}/registrations`
+      );
 
-    const count = volunteers.length;
+    const volunteers =
+      response.data ||
+      response.registrations ||
+      response ||
+      [];
 
-    if (els.registered) els.registered.textContent = count;
-    if (els.remaining) {
-      els.remaining.textContent =
-        (eventData.volunteerSlots || 0) - count;
-    }
+    if (!Array.isArray(volunteers) || !volunteers.length) {
 
-    if (!count) {
       els.table.innerHTML = `
-        <tr><td colspan="4">No volunteers yet</td></tr>
+        <tr>
+          <td colspan="4">
+            No volunteers have registered yet.
+          </td>
+        </tr>
       `;
+
       return;
     }
 
-    els.table.innerHTML = volunteers
-      .map((v) => `
-        <tr>
-          <td>${v.user?.fullName || "Unknown"}</td>
-          <td>${v.user?.email || "—"}</td>
-          <td>${formatDate(v.createdAt)}</td>
-          <td><span class="status-badge status-published">Confirmed</span></td>
-        </tr>
-      `)
-      .join("");
+    els.table.innerHTML =
+      volunteers
+        .map((volunteer) => {
+
+          const user =
+            volunteer.user ||
+            volunteer.volunteer ||
+            volunteer.volunteerId ||
+            {};
+
+          return `
+            <tr>
+
+              <td>
+                ${user.fullName || "-"}
+              </td>
+
+              <td>
+                ${user.email || "-"}
+              </td>
+
+              <td>
+                ${formatDate(
+                  volunteer.createdAt,
+                  "long"
+                )}
+              </td>
+
+              <td>
+
+                <span class="status-badge status-published">
+                  Registered
+                </span>
+
+              </td>
+
+            </tr>
+          `;
+
+        })
+        .join("");
 
   } catch (error) {
-    console.error("Load volunteers failed:", error.message);
+
+    console.error(
+      "Failed to load volunteers:",
+      error
+    );
 
     els.table.innerHTML = `
-      <tr><td colspan="4">Failed to load volunteers</td></tr>
+      <tr>
+        <td colspan="4">
+          Unable to load volunteers.
+        </td>
+      </tr>
     `;
+
   }
+
 }
 
-/* ---------------- ACTIONS ---------------- */
-
-async function cancelEvent() {
-  if (!eventId) return;
-
-  const confirmAction = confirm("Cancel this event?");
-  if (!confirmAction) return;
-
-  try {
-    if (els.cancelBtn) {
-      els.cancelBtn.disabled = true;
-      els.cancelBtn.textContent = "Cancelling...";
-    }
-
-    await apiRequest(`/events/${eventId}/cancel`, {
-      method: "PATCH",
-      body: JSON.stringify({ reason: "Cancelled by organizer" })
-    });
-
-    setFeedback("Event cancelled successfully.", "success");
-
-    setTimeout(() => {
-      location.reload();
-    }, 800);
-
-  } catch (error) {
-    setFeedback(error.message || "Failed to cancel event.", "error");
-  } finally {
-    if (els.cancelBtn) {
-      els.cancelBtn.disabled = false;
-      els.cancelBtn.textContent = "Cancel Event";
-    }
-  }
-}
+/* ==================================================
+   ACTIONS
+================================================== */
 
 function editEvent() {
+
   if (!eventId) return;
-  window.location.href = `create-event.html?id=${encodeURIComponent(eventId)}`;
+
+  window.location.href =
+    `${ROUTES.organizerCreateEvent}?id=${eventId}`;
+
 }
 
-/* ---------------- INIT ---------------- */
+function cancelEvent() {
+
+  if (!eventId) return;
+
+  window.location.href =
+    `${ROUTES.organizerCancelEvent}?id=${eventId}`;
+
+}
+/* ==================================================
+   UI
+================================================== */
 
 function bindUI() {
-  els.logoutBtn?.addEventListener("click", () => {
-    logout(ROUTES.organizerLogin);
-  });
 
-  els.cancelBtn?.addEventListener("click", cancelEvent);
-  els.editBtn?.addEventListener("click", editEvent);
+  els.editBtn?.addEventListener(
+    "click",
+    editEvent
+  );
+
+  els.cancelBtn?.addEventListener(
+    "click",
+    cancelEvent
+  );
+
 }
 
-document.addEventListener("DOMContentLoaded", async () => {
-  const organizer = await requireOrganizer();
-  if (!organizer) return;
+/* ==================================================
+   INIT
+================================================== */
 
-  bindUI();
-  await loadEvent();
-});
+document.addEventListener(
+  "DOMContentLoaded",
+  async () => {
+
+    try {
+
+      /* ---------------- AUTH ---------------- */
+
+      organizer =
+        await requireOrganizer();
+
+      if (!organizer) return;
+
+      /* ---------------- PROFILE ---------------- */
+
+      await loadOrganizerProfile({
+
+        avatarEl:
+          els.organizerAvatar
+
+      });
+
+      /* ---------------- LOGOUT ---------------- */
+
+      initLogoutModal({
+
+        logoutBtn:
+          els.logoutBtn,
+
+        logoutModal:
+          els.logoutModal,
+
+        closeLogoutModal:
+          els.closeLogoutModal,
+
+        cancelLogout:
+          els.cancelLogout,
+
+        confirmLogout:
+          els.confirmLogout,
+
+        redirectTo:
+          ROUTES.organizerLogin
+
+      });
+
+      /* ---------------- UI ---------------- */
+
+      bindUI();
+
+      /* ---------------- DATA ---------------- */
+
+      await loadEvent();
+
+      await loadVolunteers();
+
+    } catch (error) {
+
+      console.error(
+        "Failed to initialize Event Details:",
+        error
+      );
+
+      els.name.textContent =
+        "Unable to load page.";
+
+      els.description.textContent =
+        error.message ||
+        "Something went wrong.";
+
+    }
+
+  }
+);
