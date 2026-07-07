@@ -3,7 +3,7 @@ import {
   requireOrganizer,
   loadOrganizerProfile
 } from "../../assets/js/organizer/organizer-auth.js";
-import { logout } from "../../assets/js/logout.js";
+import { initLogoutModal } from "../../assets/js/logout.js";
 import { ROUTES } from "../../assets/js/config.js";
 import {  normalizeArray, formatDate, getLocationText } from "../../assets/js/utils.js";
 
@@ -247,74 +247,82 @@ async function loadDashboard() {
   }
 }
 
-function openLogoutModal() {
-  els.logoutModal?.classList.remove("hidden");
-}
+// function openLogoutModal() {
+//   els.logoutModal?.classList.remove("hidden");
+// }
 
-function closeLogoutModal() {
-  els.logoutModal?.classList.add("hidden");
+// function closeLogoutModal() {
+//   els.logoutModal?.classList.add("hidden");
 
-  if (els.confirmLogout) {
-    els.confirmLogout.disabled = false;
-    els.confirmLogout.textContent = "Yes, Log out";
-  }
-}
+//   if (els.confirmLogout) {
+//     els.confirmLogout.disabled = false;
+//     els.confirmLogout.textContent = "Yes, Log out";
+//   }
+// }
 
-async function handleLogout() {
-  try {
-    els.confirmLogout.disabled = true;
-    els.confirmLogout.textContent = "Logging out...";
+// async function handleLogout() {
+//   try {
+//     els.confirmLogout.disabled = true;
+//     els.confirmLogout.textContent = "Logging out...";
 
-    await apiRequest("/auth/logout", {
-      method: "POST"
-    });
+//     await apiRequest("/auth/logout", {
+//       method: "POST"
+//     });
 
-  } catch (error) {
-    console.warn("Logout failed:", error.message);
+//   } catch (error) {
+//     console.warn("Logout failed:", error.message);
 
-  } finally {
-    localStorage.clear();
-    sessionStorage.clear();
+//   } finally {
+//     localStorage.clear();
+//     sessionStorage.clear();
 
-    window.location.href = ROUTES.organizerLogin;
-  }
-}
+//     window.location.href = ROUTES.organizerLogin;
+//   }
+// }
 
 //    UI
 // ================================================== */
 
+// function bindUI() {
+//   els.logoutBtn?.addEventListener("click", openLogoutModal);
+
+//   els.closeLogoutModal?.addEventListener(
+//     "click",
+//     closeLogoutModal
+//   );
+
+//   els.cancelLogout?.addEventListener(
+//     "click",
+//     closeLogoutModal
+//   );
+
+//   els.confirmLogout?.addEventListener(
+//     "click",
+//     handleLogout
+//   );
+
+//   els.logoutModal?.addEventListener("click", (event) => {
+//     if (event.target === els.logoutModal) {
+//       closeLogoutModal();
+//     }
+//   });
+
+//   document.addEventListener("keydown", (event) => {
+//     if (
+//       event.key === "Escape" &&
+//       !els.logoutModal?.classList.contains("hidden")
+//     ) {
+//       closeLogoutModal();
+//     }
+//   });
+// }
+
 function bindUI() {
-  els.logoutBtn?.addEventListener("click", openLogoutModal);
 
-  els.closeLogoutModal?.addEventListener(
-    "click",
-    closeLogoutModal
-  );
-
-  els.cancelLogout?.addEventListener(
-    "click",
-    closeLogoutModal
-  );
-
-  els.confirmLogout?.addEventListener(
-    "click",
-    handleLogout
-  );
-
-  els.logoutModal?.addEventListener("click", (event) => {
-    if (event.target === els.logoutModal) {
-      closeLogoutModal();
-    }
+  initLogoutModal({
+    redirectTo: ROUTES.organizerLogin
   });
 
-  document.addEventListener("keydown", (event) => {
-    if (
-      event.key === "Escape" &&
-      !els.logoutModal?.classList.contains("hidden")
-    ) {
-      closeLogoutModal();
-    }
-  });
 }
 
 document.addEventListener(

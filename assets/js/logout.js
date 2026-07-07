@@ -9,14 +9,12 @@ export async function logout(redirectTo = ROUTES.home) {
 
   try {
 
-    /* Backend logout */
     await apiRequest("/auth/logout", {
       method: "POST"
     });
 
   } catch (error) {
 
-    /* Do not block logout if backend fails */
     console.warn("Logout request failed:", error?.message);
 
   } finally {
@@ -42,4 +40,70 @@ export async function logout(redirectTo = ROUTES.home) {
 
     window.location.href = redirectTo;
   }
+}
+
+/* ==================================================
+   LOGOUT MODAL
+================================================== */
+
+export function initLogoutModal({
+  logoutBtnId = "logoutBtn",
+  modalId = "logoutModal",
+  closeBtnId = "closeLogoutModal",
+  cancelBtnId = "cancelLogout",
+  confirmBtnId = "confirmLogout",
+  redirectTo = ROUTES.home
+} = {}) {
+
+  const logoutBtn = document.getElementById(logoutBtnId);
+  const modal = document.getElementById(modalId);
+  const closeBtn = document.getElementById(closeBtnId);
+  const cancelBtn = document.getElementById(cancelBtnId);
+  const confirmBtn = document.getElementById(confirmBtnId);
+
+  if (!logoutBtn || !modal) return;
+
+  function openModal() {
+    modal.classList.remove("hidden");
+  }
+
+  function closeModal() {
+    modal.classList.add("hidden");
+
+    if (confirmBtn) {
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = "Yes, Log out";
+    }
+  }
+
+  logoutBtn.addEventListener("click", openModal);
+
+  closeBtn?.addEventListener("click", closeModal);
+
+  cancelBtn?.addEventListener("click", closeModal);
+
+  confirmBtn?.addEventListener("click", async () => {
+
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = "Logging out...";
+
+    await logout(redirectTo);
+
+  });
+
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      closeModal();
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (
+      e.key === "Escape" &&
+      !modal.classList.contains("hidden")
+    ) {
+      closeModal();
+    }
+  });
+
 }

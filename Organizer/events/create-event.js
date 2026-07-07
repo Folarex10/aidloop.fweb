@@ -263,7 +263,7 @@ import {
 } from "../../assets/js/config.js";
 
 import { requireOrganizer } from "../../assets/js/organizer/organizer-auth.js";
-import { initOrganizerLogout } from "../../assets/js/organizer/organizer-logout.js";
+import { initLogoutModal } from "../../assets/js/logout.js";
 
 const els = {
   form: document.getElementById("eventForm"),
@@ -784,6 +784,10 @@ function bindUI() {
 
   //   }
   // );
+
+  initLogoutModal({
+    redirectTo: ROUTES.organizerLogin
+});
 
 }
 
