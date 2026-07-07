@@ -803,8 +803,6 @@ document.addEventListener(
 
       await requireOrganizer();
 
-      initOrganizerLogout();
-
       bindUI();
 
       await loadEvent();
