@@ -1,113 +1,384 @@
 import { apiRequest } from "../../assets/js/api.js";
-import { requireRole } from "../../assets/js/organizer/organizer-auth.js";
-import { logout } from "../../assets/js/logout.js";
+import {
+  requireOrganizer,
+  loadOrganizerProfile
+} from "../../assets/js/organizer/organizer-auth.js";
 import { ROUTES } from "../../assets/js/config.js";
+import { initLogoutModal } from "../../assets/js/logout.js";
 
-const eventId = new URLSearchParams(window.location.search).get("id");
+/* ==================================================
+   ELEMENTS
+================================================== */
 
 const els = {
-  cancelBtn: document.getElementById("cancelEventBtn"),
-  goBackBtn: document.getElementById("goBackBtn"),
-  reasonText: document.getElementById("reasonText"),
-  logoutBtn: document.getElementById("logoutBtn"),
-  confirmModal: document.getElementById("confirmModal"),
-  confirmCancel: document.getElementById("confirmCancel"),
-  closeModal: document.getElementById("closeModal"),
-  cancelModal: document.getElementById("cancelModal")
+
+  organizerAvatar:
+    document.getElementById("organizerAvatar"),
+
+  cancelEventBtn:
+    document.getElementById("cancelEventBtn"),
+
+  goBackBtn:
+    document.getElementById("goBackBtn"),
+
+  reasonText:
+    document.getElementById("reasonText"),
+
+  reasonChecks:
+    document.querySelectorAll(
+      ".checkbox-grid input"
+    ),
+
+  confirmModal:
+    document.getElementById("confirmModal"),
+
+  closeModal:
+    document.getElementById("closeModal"),
+
+  cancelModal:
+    document.getElementById("cancelModal"),
+
+  confirmCancel:
+    document.getElementById("confirmCancel"),
+
+  logoutBtn:
+    document.getElementById("logoutBtn"),
+
+  logoutModal:
+    document.getElementById("logoutModal"),
+
+  closeLogoutModal:
+    document.getElementById("closeLogoutModal"),
+
+  cancelLogout:
+    document.getElementById("cancelLogout"),
+
+  confirmLogout:
+    document.getElementById("confirmLogout"),
+
+  pageTitle:
+    document.querySelector(".page-title")
+
 };
 
-/* ---------------- HELPERS ---------------- */
+const eventId =
+  new URLSearchParams(
+    window.location.search
+  ).get("id");
 
-function getSelectedReasons() {
-  return [...document.querySelectorAll("input[type='checkbox']:checked")]
-    .map((cb) => cb.value.trim())
-    .filter(Boolean);
-}
+let organizer = null;
 
-function buildReason() {
-  const selected = getSelectedReasons();
-  const text = els.reasonText.value.trim();
+let eventData = null;
 
-  return [...selected, text].filter(Boolean).join(", ");
-}
+let selectedReason = "";
 
-function openModal() {
-  els.confirmModal.classList.remove("hidden");
-}
+/* ==================================================
+   LOAD EVENT
+================================================== */
 
-function hideModal() {
-  els.confirmModal.classList.add("hidden");
-}
+async function loadEvent() {
 
-function validateEventId() {
-  if (!eventId || eventId === "undefined" || eventId === "null") {
-    alert("Invalid event ID");
-    window.location.href = ROUTES.organizerEventListing;
-    return false;
-  }
-  return true;
-}
+  if (!eventId) {
 
-/* ---------------- CANCEL EVENT ---------------- */
+    alert("Invalid event.");
 
-async function cancelEvent() {
-  if (!validateEventId()) return;
+    window.location.href =
+      ROUTES.organizerEventListing;
 
-  const reason = buildReason();
-
-  if (!reason) {
-    alert("Please provide a reason for cancellation");
     return;
+
   }
 
   try {
+
+    const response =
+      await apiRequest(`/events/${eventId}`);
+
+    eventData =
+      response.data ||
+      response.event ||
+      response;
+
+    if (els.pageTitle) {
+
+      els.pageTitle.textContent =
+        `Cancel ${eventData.name}`;
+
+    }
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      error.message ||
+      "Unable to load event."
+    );
+
+    window.location.href =
+      ROUTES.organizerEventListing;
+
+  }
+
+}
+
+/* ==================================================
+   REASON
+================================================== */
+
+function bindReasons() {
+
+  els.reasonChecks.forEach((checkbox) => {
+
+    checkbox.addEventListener(
+      "change",
+      () => {
+
+        els.reasonChecks.forEach((item) => {
+
+          if (item !== checkbox) {
+
+            item.checked = false;
+
+          }
+
+        });
+
+        selectedReason =
+          checkbox.checked
+            ? checkbox.value
+            : "";
+
+      }
+    );
+
+  });
+
+}
+
+/* ==================================================
+   VALIDATION
+================================================== */
+
+function validateForm() {
+
+  if (!selectedReason) {
+
+    alert(
+      "Please select a cancellation reason."
+    );
+
+    return false;
+
+  }
+
+  if (
+    selectedReason === "Other" &&
+    !els.reasonText.value.trim()
+  ) {
+
+    alert(
+      "Please provide additional details."
+    );
+
+    els.reasonText.focus();
+
+    return false;
+
+  }
+
+  return true;
+
+}
+
+/* ==================================================
+   MODAL
+================================================== */
+
+function openConfirmModal() {
+
+  if (!validateForm()) return;
+
+  els.confirmModal
+    ?.classList.remove("hidden");
+
+}
+
+function closeConfirmModal() {
+
+  els.confirmModal
+    ?.classList.add("hidden");
+
+}
+/* ==================================================
+   CANCEL EVENT
+================================================== */
+
+async function submitCancellation() {
+
+  try {
+
     els.confirmCancel.disabled = true;
     els.confirmCancel.textContent = "Cancelling...";
 
-    await apiRequest(`/events/${eventId}/cancel`, {
-      method: "PATCH",
-      body: JSON.stringify({
-        cancelReason: reason   // ✅ FIXED KEY
-      })
-    });
+    const payload = {
+      reason: selectedReason,
+      note:
+        selectedReason === "Other"
+          ? els.reasonText.value.trim()
+          : els.reasonText.value.trim() || null
+    };
 
-    alert("Event cancelled successfully");
+    await apiRequest(
+      `/events/${eventId}/cancel`,
+      {
+        method: "PATCH",
+        body: JSON.stringify(payload)
+      }
+    );
 
-    window.location.href = ROUTES.organizerEventListing;
+    closeConfirmModal();
 
-  } catch (err) {
-    alert(err.message || "Failed to cancel event");
+    alert(
+      "Event cancelled successfully.\nRegistered volunteers will be notified."
+    );
+
+    window.location.href =
+      ROUTES.organizerEventListing;
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      error.message ||
+      "Unable to cancel event."
+    );
+
+  } finally {
 
     els.confirmCancel.disabled = false;
-    els.confirmCancel.textContent = "Yes, Cancel event";
+    els.confirmCancel.textContent =
+      "Yes, Cancel event";
+
   }
+
 }
 
-/* ---------------- EVENTS ---------------- */
+/* ==================================================
+   GO BACK
+================================================== */
 
-els.cancelBtn.addEventListener("click", () => {
-  if (!validateEventId()) return;
-  openModal();
-});
+function goBack() {
 
-els.goBackBtn.addEventListener("click", () => {
-  window.history.back();
-});
+  if (eventId) {
 
-[els.closeModal, els.cancelModal].forEach((btn) => {
-  btn.addEventListener("click", hideModal);
-});
+    window.location.href =
+      `${ROUTES.organizerEventDetails}?id=${encodeURIComponent(eventId)}`;
 
-els.confirmCancel.addEventListener("click", cancelEvent);
+    return;
 
-els.logoutBtn.addEventListener("click", () => {
-  logout(ROUTES.organizerLogin);
-});
+  }
 
-/* ---------------- INIT ---------------- */
+  window.location.href =
+    ROUTES.organizerEventListing;
 
-document.addEventListener("DOMContentLoaded", async () => {
-  await requireRole("organizer", ROUTES.organizerLogin);
+}
 
-  if (!validateEventId()) return;
-});
+/* ==================================================
+   UI
+================================================== */
+
+function bindUI() {
+
+  bindReasons();
+
+  els.cancelEventBtn?.addEventListener(
+    "click",
+    openConfirmModal
+  );
+
+  els.goBackBtn?.addEventListener(
+    "click",
+    goBack
+  );
+
+  els.confirmCancel?.addEventListener(
+    "click",
+    submitCancellation
+  );
+
+  els.cancelModal?.addEventListener(
+    "click",
+    closeConfirmModal
+  );
+
+  els.closeModal?.addEventListener(
+    "click",
+    closeConfirmModal
+  );
+
+  els.confirmModal?.addEventListener(
+    "click",
+    (event) => {
+
+      if (
+        event.target === els.confirmModal
+      ) {
+
+        closeConfirmModal();
+
+      }
+
+    }
+  );
+
+  document.addEventListener(
+    "keydown",
+    (event) => {
+
+      if (
+        event.key === "Escape" &&
+        !els.confirmModal
+          ?.classList.contains("hidden")
+      ) {
+
+        closeConfirmModal();
+
+      }
+
+    }
+  );
+
+}
+/* ==================================================
+   INIT
+================================================== */
+
+document.addEventListener(
+  "DOMContentLoaded",
+  async () => {
+
+    await requireOrganizer();
+
+    await loadOrganizerProfile({
+      avatarEl: document.getElementById(
+        "organizerAvatar"
+      )
+    });
+
+    initLogoutModal({
+      logoutBtn: "#logoutBtn",
+      modal: "#logoutModal",
+      closeBtn: "#closeLogoutModal",
+      cancelBtn: "#cancelLogout",
+      confirmBtn: "#confirmLogout",
+      redirectTo: ROUTES.organizerLogin
+    });
+
+    bindUI();
+
+    await loadEvent();
+
+  }
+);
