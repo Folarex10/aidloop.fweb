@@ -1,202 +1,464 @@
 import { apiRequest } from "../../assets/js/api.js";
-import { requireRole } from "../../assets/js/organizer/organizer-auth.js";
-import { logout } from "../../assets/js/logout.js";
-import { ROUTES } from "../../assets/js/config.js";
+import {
+  requireOrganizer,
+  loadOrganizerProfile
+} from "../../assets/js/organizer/organizer-auth.js";
 
-const eventId = new URLSearchParams(window.location.search).get("eventId");
+import { initLogoutModal } from "../../assets/js/logout.js";
+import { ROUTES } from "../../assets/js/config.js";
 
 const els = {
   table: document.getElementById("volunteerTable"),
+
   total: document.getElementById("totalRegistered"),
   attended: document.getElementById("attendedCount"),
   noShow: document.getElementById("noShowCount"),
+
   searchInput: document.getElementById("searchInput"),
   tableCountText: document.getElementById("tableCountText"),
+
   filterBtns: document.querySelectorAll(".filter-btn"),
-  logoutBtn: document.getElementById("logoutBtn")
+
+  logoutBtn: document.getElementById("logoutBtn"),
+
+  organizerAvatar: document.getElementById("organizerAvatar")
 };
 
+let organizer = null;
+
+let allEvents = [];
 let allVolunteers = [];
+
 let currentFilter = "all";
 
-function getStatus(v) {
-  return String(v.status || "confirmed").toLowerCase();
-}
+/* ==================================================
+   HELPERS
+================================================== */
 
-function getAttendance(v) {
-  return String(v.attendance || "").toLowerCase();
+function getVolunteer(v) {
+  return v.volunteerId || {};
 }
 
 function getDisplayName(v) {
-  return v.user?.fullName || "Unknown";
+  return getVolunteer(v).fullName || "Unknown Volunteer";
 }
 
 function getEmail(v) {
-  return v.user?.email || "—";
+  return getVolunteer(v).email || "—";
 }
 
 function getAvatar(v) {
-  return v.user?.profileImage || "https://i.pravatar.cc/100?img=12";
+  return (
+    getVolunteer(v).profileImage ||
+    "https://i.pravatar.cc/100?img=12"
+  );
+}
+
+function getStatus(v) {
+  return String(v.status || "").toLowerCase();
+}
+
+function isUpcoming(v) {
+
+  const event = allEvents.find(
+    e => String(e._id) === String(v.eventId)
+  );
+
+  if (!event) return false;
+
+  return (
+    new Date(event.date) >= new Date() &&
+    event.status === "published"
+  );
 }
 
 function getQualification(v) {
-  return getAttendance(v) === "attended" ? "Qualified for certificate" : "Pending attendance";
+
+  return getStatus(v) === "attended"
+    ? "Qualified for certificate"
+    : "Pending attendance";
+
 }
 
+/* ==================================================
+   STATS
+================================================== */
+
 function renderStats() {
+
   const total = allVolunteers.length;
-  const attended = allVolunteers.filter((v) => getAttendance(v) === "attended").length;
-  const noShow = Math.max(0, total - attended);
+
+  const attended =
+    allVolunteers.filter(
+      v => getStatus(v) === "attended"
+    ).length;
+
+  const noShow =
+    Math.max(
+      0,
+      total - attended
+    );
 
   els.total.textContent = total;
   els.attended.textContent = attended;
   els.noShow.textContent = noShow;
 }
 
+/* ==================================================
+   TABLE
+================================================== */
+
 function renderTable() {
-  const query = els.searchInput.value.trim().toLowerCase();
 
-  let filtered = [...allVolunteers];
+  const query =
+    els.searchInput.value
+      .trim()
+      .toLowerCase();
 
-  if (currentFilter !== "all") {
-    filtered = filtered.filter((v) => getStatus(v) === currentFilter);
+  let volunteers = [...allVolunteers];
+
+  /* ---------- FILTER ---------- */
+
+  switch (currentFilter) {
+
+    case "confirmed":
+
+      volunteers =
+        volunteers.filter(
+          v => getStatus(v) === "registered"
+        );
+
+      break;
+
+    case "upcoming":
+
+      volunteers =
+        volunteers.filter(isUpcoming);
+
+      break;
+
+    default:
+      break;
   }
+
+  /* ---------- SEARCH ---------- */
 
   if (query) {
-    filtered = filtered.filter((v) => {
-      const searchable = `${getDisplayName(v)} ${getEmail(v)} ${getQualification(v)}`.toLowerCase();
-      return searchable.includes(query);
-    });
+
+    volunteers =
+      volunteers.filter(v => {
+
+        const searchable = `
+          ${getDisplayName(v)}
+          ${getEmail(v)}
+          ${getQualification(v)}
+        `.toLowerCase();
+
+        return searchable.includes(query);
+
+      });
+
   }
 
-  els.tableCountText.textContent = `Showing ${filtered.length} of ${allVolunteers.length} entries`;
+  els.tableCountText.textContent =
+    `Showing ${volunteers.length} of ${allVolunteers.length} entries`;
 
-  if (!filtered.length) {
+  if (!volunteers.length) {
+
     els.table.innerHTML = `
-      <tr><td colspan="6">No volunteers found</td></tr>
-    `;
-    return;
-  }
-
-  els.table.innerHTML = filtered.map((v) => {
-    const id = v._id;
-    const attended = getAttendance(v) === "attended";
-
-    return `
       <tr>
-        <td>
-          <div class="volunteer-name">
-            <img class="avatar" src="${getAvatar(v)}" alt="${getDisplayName(v)}" />
-            <span>${getDisplayName(v)}</span>
-          </div>
-        </td>
-        <td>${getEmail(v)}</td>
-        <td><span class="badge confirmed">Confirmed</span></td>
-        <td>
-          <div class="attendance-wrap">
-            <button
-              class="attendance-box ${attended ? "checked" : ""}"
-              data-id="${id}"
-              title="${attended ? "Attended" : "Mark attended"}"
-            >
-              ${attended ? '<i class="fa-solid fa-check"></i>' : ""}
-            </button>
-          </div>
-        </td>
-        <td class="qualification-cell ${attended ? "qualified" : "pending"}">
-          ${attended ? "Qualified for certificate" : "Pending attendance"}
-        </td>
-        <td class="row-actions">
-          <button type="button">
-            <i class="fa-solid fa-ellipsis"></i>
-          </button>
+        <td colspan="6">
+          No volunteers found
         </td>
       </tr>
     `;
-  }).join("");
+
+    return;
+  }
+
+  els.table.innerHTML =
+    volunteers
+      .map(v => {
+
+        const attended =
+          getStatus(v) === "attended";
+
+        return `
+          <tr>
+
+            <td>
+
+              <div class="volunteer-name">
+
+                <img
+                  class="avatar"
+                  src="${getAvatar(v)}"
+                  alt="${getDisplayName(v)}"
+                />
+
+                <span>${getDisplayName(v)}</span>
+
+              </div>
+
+            </td>
+
+            <td>${getEmail(v)}</td>
+
+            <td>
+
+              <span class="badge confirmed">
+                Registered
+              </span>
+
+            </td>
+
+            <td>
+
+              <button
+                class="attendance-box ${attended ? "checked" : ""}"
+                data-id="${v._id}"
+              >
+
+                ${
+                  attended
+                    ? '<i class="fa-solid fa-check"></i>'
+                    : ""
+                }
+
+              </button>
+
+            </td>
+
+            <td class="${
+              attended
+                ? "qualified"
+                : "pending"
+            }">
+
+              ${
+                attended
+                  ? "Qualified for certificate"
+                  : "Pending attendance"
+              }
+
+            </td>
+
+            <td>
+
+              <button
+                class="row-action"
+                type="button"
+              >
+                <i class="fa-solid fa-ellipsis"></i>
+              </button>
+
+            </td>
+
+          </tr>
+        `;
+
+      })
+      .join("");
 
   attachAttendanceHandlers();
 }
 
+/* ==================================================
+   ATTENDANCE
+================================================== */
+
 function attachAttendanceHandlers() {
-  document.querySelectorAll(".attendance-box").forEach((btn) => {
-    btn.addEventListener("click", async () => {
-      const id = btn.dataset.id;
-      const targetVolunteer = allVolunteers.find((v) => v._id === id);
-      const alreadyAttended = getAttendance(targetVolunteer) === "attended";
 
-      if (alreadyAttended) return;
+  document
+    .querySelectorAll(".attendance-box")
+    .forEach((button) => {
 
-      try {
-        btn.disabled = true;
+      button.addEventListener("click", async () => {
 
-        await apiRequest(`/applications/registrations/${id}/attendance`, {
-          method: "PATCH",
-          body: JSON.stringify({ status: "attended" })
-        });
+        const registrationId =
+          button.dataset.id;
 
-        allVolunteers = allVolunteers.map((v) =>
-          v._id === id
-            ? {
-                ...v,
-                attendance: "attended",
-                certificateQualified: true
-              }
-            : v
-        );
+        const registration =
+          allVolunteers.find(
+            v => v._id === registrationId
+          );
 
-        renderStats();
-        renderTable();
-      } catch (err) {
-        alert(err.message || "Failed to update attendance");
-        btn.disabled = false;
-      }
+        if (!registration) return;
+
+        if (getStatus(registration) === "attended") {
+          return;
+        }
+
+        try {
+
+          button.disabled = true;
+
+          await apiRequest(
+            `/applications/registrations/${registrationId}/attendance`,
+            {
+              method: "PATCH",
+              body: JSON.stringify({
+                attendance: "attended"
+              })
+            }
+          );
+
+          registration.status = "attended";
+
+          renderStats();
+
+          renderTable();
+
+        } catch (error) {
+
+          console.error(error);
+
+          alert(
+            error.message ||
+            "Failed to update attendance."
+          );
+
+          button.disabled = false;
+
+        }
+
+      });
+
     });
-  });
+
 }
+
+/* ==================================================
+   LOAD VOLUNTEERS
+================================================== */
 
 async function loadVolunteers() {
-  const data = await apiRequest(`/applications/events/${eventId}/registrations`);
-  const volunteers = Array.isArray(data) ? data : data.data || [];
-  allVolunteers = volunteers;
+
+  const response =
+    await apiRequest(
+      `/applications/events/${eventId}/registrations`
+    );
+
+  allVolunteers =
+    Array.isArray(response)
+      ? response
+      : response.data || [];
 
   renderStats();
+
   renderTable();
+
 }
+
+/* ==================================================
+   FILTERS
+================================================== */
 
 function bindFilters() {
-  els.filterBtns.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      els.filterBtns.forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-      currentFilter = btn.dataset.filter;
+
+  els.filterBtns.forEach((button) => {
+
+    button.addEventListener("click", () => {
+
+      els.filterBtns.forEach(btn =>
+        btn.classList.remove("active")
+      );
+
+      button.classList.add("active");
+
+      currentFilter =
+        button.dataset.filter;
+
       renderTable();
+
     });
+
   });
+
 }
 
-els.searchInput.addEventListener("input", renderTable);
+/* ==================================================
+   SEARCH
+================================================== */
 
-els.logoutBtn.addEventListener("click", () => {
-  logout(ROUTES.organizerLogin);
-});
+function bindSearch() {
 
-document.addEventListener("DOMContentLoaded", async () => {
-  await requireRole("organizer", ROUTES.organizerLogin);
+  els.searchInput?.addEventListener(
+    "input",
+    renderTable
+  );
 
-  if (!eventId) {
-    alert("No event selected");
-    window.location.href = ROUTES.organizerEventListing;
-    return;
-  }
+}
+/* ==================================================
+   UI
+================================================== */
+
+function bindUI() {
 
   bindFilters();
 
-  try {
-    await loadVolunteers();
-  } catch (err) {
-    els.table.innerHTML = `
-      <tr><td colspan="6">Failed to load volunteers</td></tr>
-    `;
+  bindSearch();
+
+  initLogoutModal({
+    triggerSelector: "#logoutBtn",
+    redirectTo: ROUTES.organizerLogin
+  });
+
+}
+
+/* ==================================================
+   INIT
+================================================== */
+
+document.addEventListener(
+  "DOMContentLoaded",
+  async () => {
+
+    try {
+
+      organizer = await requireOrganizer();
+
+      if (!organizer) {
+        return;
+      }
+
+      await loadOrganizerProfile({
+
+        avatarEl: els.organizerAvatar
+
+      });
+
+      if (!eventId) {
+
+        alert("No event selected.");
+
+        window.location.href =
+          ROUTES.organizerEventListing;
+
+        return;
+
+      }
+
+      bindUI();
+
+      await loadVolunteers();
+
+    } catch (error) {
+
+      console.error(
+        "Failed to load volunteers:",
+        error
+      );
+
+      els.table.innerHTML = `
+        <tr>
+          <td colspan="6">
+            Failed to load volunteers.
+          </td>
+        </tr>
+      `;
+
+    }
+
   }
-});
+);

@@ -255,6 +255,14 @@ tbody tr:last-child {
   gap: 0.8rem;
 }
 
+.profile-mini img {
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+
 .avatar {
   width: 2.1rem;
   height: 2.1rem;
