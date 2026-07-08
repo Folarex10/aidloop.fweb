@@ -252,15 +252,17 @@ async function loadProfile() {
 
     let profile;
 
-    try {
+    // try {
 
-      profile = await apiRequest("/users/me");
+    //   profile = await apiRequest("/users/me");
 
-    } catch {
+    // } catch {
 
-      profile = await apiRequest("/user/me");
+    //   profile = await apiRequest("/user/me");
 
-    }
+    // }
+
+    const profile = await apiRequest("/user/me");
 
     currentOrganizer =
       profile.data ||
