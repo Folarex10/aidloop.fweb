@@ -7,6 +7,10 @@ import {
 import { initLogoutModal } from "../../assets/js/logout.js";
 import { ROUTES } from "../../assets/js/config.js";
 
+const eventId =
+  new URLSearchParams(window.location.search)
+    .get("eventId");
+
 const els = {
   table: document.getElementById("volunteerTable"),
 
