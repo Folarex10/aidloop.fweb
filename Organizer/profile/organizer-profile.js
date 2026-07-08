@@ -1,6 +1,10 @@
 import { apiRequest, normalizeArray } from "../../assets/js/api.js";
-import { requireRole } from "../../assets/js/organizer/organizer-auth.js";
-import { logout } from "../../assets/js/logout.js";
+import {
+  requireOrganizer,
+  loadOrganizerProfile
+} from "../../assets/js/organizer/organizer-auth.js";
+
+import { initLogoutModal } from "../../assets/js/logout.js";
 import { ROUTES } from "../../assets/js/config.js";
 
 const els = {
@@ -20,267 +24,505 @@ const els = {
   totalVolunteers: document.getElementById("totalVolunteers"),
   certificatesIssued: document.getElementById("certificatesIssued"),
 
+  eventsMonthText: document.getElementById("eventsMonthText"),
+  volunteersMonthText: document.getElementById("volunteersMonthText"),
+  certificatesMonthText: document.getElementById("certificatesMonthText"),
+
   editProfileBtn: document.getElementById("editProfileBtn"),
+
   logoutBtn: document.getElementById("logoutBtn"),
-  feedback: document.getElementById("profileMessage")
+
+  organizerAvatar:
+    document.getElementById("organizerAvatar"),
+
+  logoutModal:
+    document.getElementById("logoutModal"),
+
+  closeLogoutModal:
+    document.getElementById("closeLogoutModal"),
+
+  cancelLogout:
+    document.getElementById("cancelLogout"),
+
+  confirmLogout:
+    document.getElementById("confirmLogout"),
+
+  feedback:
+    document.getElementById("profileMessage")
 };
 
-let currentOrganizer = null;
+let organizer = null;
 let profileEditMode = false;
 
-/* ------------------ HELPERS ------------------ */
+/* ==================================================
+   HELPERS
+================================================== */
 
-function setFeedback(message, type = "") {
+function setFeedback(message = "", type = "") {
+
   if (!els.feedback) return;
 
   els.feedback.textContent = message;
   els.feedback.className = "profile-message";
-  if (type) els.feedback.classList.add(type);
+
+  if (type) {
+    els.feedback.classList.add(type);
+  }
+
 }
 
 function getDisplayName(user) {
-  return user.fullName || user.name || user.organizationName || "Organization";
+
+  return (
+    user.organizationName ||
+    user.fullName ||
+    user.name ||
+    "Organization"
+  );
+
 }
 
 function getInitials(name) {
-  return String(name || "AL")
+
+  return String(name || "")
     .split(" ")
+    .filter(Boolean)
     .slice(0, 2)
-    .map((p) => p.charAt(0))
+    .map(word => word.charAt(0))
     .join("")
     .toUpperCase();
+
 }
 
-function getVerificationLabel(user) {
-  const status = String(user.status || "").toLowerCase();
-  const approval = String(user.approvalStatus || "").toLowerCase();
+function getVerificationText(user) {
+
+  const status =
+    String(user.status || "").toLowerCase();
+
+  const approval =
+    String(user.approvalStatus || "").toLowerCase();
 
   if (
+    user.isVerified ||
     ["verified", "approved"].includes(status) ||
-    ["verified", "approved"].includes(approval) ||
-    user.isVerified
+    ["verified", "approved"].includes(approval)
   ) {
-    return "Verified Org";
+
+    return "Verified Organization";
+
   }
 
   return "Pending Verification";
+
 }
 
 function getLocationText(user) {
-  if (typeof user.location === "string" && user.location.trim()) {
+
+  if (
+    typeof user.location === "string" &&
+    user.location.trim()
+  ) {
+
     return user.location;
+
   }
 
-  if (user.location && typeof user.location === "object") {
+  if (
+    user.location &&
+    typeof user.location === "object"
+  ) {
+
     return [
       user.location.venue,
-      user.location.city || user.location.state
+      user.location.city,
+      user.location.state
     ]
       .filter(Boolean)
       .join(", ");
+
   }
 
-  return user.city || user.state || "—";
+  return (
+    user.city ||
+    user.state ||
+    ""
+  );
+
 }
 
-/* ------------------ UI CONTROL ------------------ */
+/* ==================================================
+   PROFILE EDIT MODE
+================================================== */
 
-function setInputsReadonly(readonly) {
-  if (els.phoneNumber) els.phoneNumber.readOnly = readonly;
-  if (els.website) els.website.readOnly = readonly;
-  if (els.location) els.location.readOnly = readonly;
-  if (els.description) els.description.readOnly = readonly;
+function setReadonly(readonly) {
+
+  els.phoneNumber.readOnly = readonly;
+  els.website.readOnly = readonly;
+  els.location.readOnly = readonly;
+  els.description.readOnly = readonly;
+
 }
 
 function toggleEditMode(force = null) {
-  profileEditMode = force !== null ? force : !profileEditMode;
 
-  setInputsReadonly(!profileEditMode);
+  profileEditMode =
+    force !== null
+      ? force
+      : !profileEditMode;
 
-  if (els.editProfileBtn) {
-    els.editProfileBtn.textContent = profileEditMode
+  setReadonly(!profileEditMode);
+
+  els.editProfileBtn.textContent =
+    profileEditMode
       ? "Save Profile"
       : "Edit Profile";
-  }
+
 }
 
-/* ------------------ VALIDATION ------------------ */
+/* ==================================================
+   POPULATE PROFILE
+================================================== */
 
-function validateProfile() {
-  if (!els.phoneNumber?.value.trim()) {
-    return "Phone number is required.";
-  }
-  return null;
-}
-
-/* ------------------ POPULATE ------------------ */
-
-function fillProfile(user) {
-  currentOrganizer = user;
+function populateProfile(user) {
 
   const name = getDisplayName(user);
 
-  if (els.orgName) els.orgName.textContent = name;
-  if (els.orgType) els.orgType.textContent = user.organizationType || "Non-profit";
-  if (els.orgCategory) els.orgCategory.textContent = user.category || "Volunteer Management";
-  if (els.verificationText) els.verificationText.textContent = getVerificationLabel(user);
-  if (els.profileAvatarBox) els.profileAvatarBox.textContent = getInitials(name);
+  els.orgName.textContent = name;
 
-  if (els.email) els.email.value = user.email || "";
-  if (els.phoneNumber) els.phoneNumber.value = user.phoneNumber || user.phone || "";
-  if (els.website) {
-    els.website.value =
-      user.website || user.socialLink || user.socialLinks?.[0] || "";
-  }
-  if (els.location) els.location.value = getLocationText(user);
-  if (els.description) {
-    els.description.value = user.description || user.bio || "";
-  }
+  els.orgType.textContent =
+    user.organizationType ||
+    "Organization";
+
+  els.orgCategory.textContent =
+    user.category ||
+    "Volunteer Management";
+
+  els.verificationText.textContent =
+    getVerificationText(user);
+
+  els.profileAvatarBox.textContent =
+    getInitials(name);
+
+  els.email.value =
+    user.email || "";
+
+  els.phoneNumber.value =
+    user.phoneNumber ||
+    user.phone ||
+    "";
+
+  els.website.value =
+    user.website ||
+    user.socialLink ||
+    "";
+
+  els.location.value =
+    getLocationText(user);
+
+  els.description.value =
+    user.description ||
+    user.bio ||
+    "";
+
 }
 
-/* ------------------ DATA ------------------ */
+/* ==================================================
+   VALIDATION
+================================================== */
+
+function validateProfile() {
+
+  if (!els.phoneNumber.value.trim()) {
+    return "Phone number is required.";
+  }
+
+  return null;
+
+}
+/* ==================================================
+   LOAD PROFILE
+================================================== */
 
 async function loadProfile() {
+
   try {
-    let profile;
 
-    try {
-      profile = await apiRequest("/users/me");
-    } catch {
-      profile = await apiRequest("/user/me");
-    }
+    const profile =
+      await apiRequest("/users/me");
 
-    fillProfile(profile);
-    toggleEditMode(false);
+    currentOrganizer =
+      profile.data || profile.user || profile;
+
+    renderProfile(currentOrganizer);
 
   } catch (error) {
-    setFeedback(error.message || "Failed to load profile.", "error");
+
+    console.error(error);
+
+    setFeedback(
+      error.message || "Failed to load profile.",
+      "error"
+    );
+
   }
+
 }
 
-async function loadStats() {
-  if (!currentOrganizer) return;
+/* ==================================================
+   LOAD ORGANIZER EVENTS
+================================================== */
+
+async function loadOrganizerStats() {
 
   try {
-    const payload = await apiRequest("/events");
-    const events = normalizeArray(payload, ["events"]);
 
-    const organizerId = String(currentOrganizer._id || currentOrganizer.id || "");
+    const response =
+      await apiRequest("/events/my-events");
 
-    const ownEvents = events.filter((event) => {
-      if (event.organizer && typeof event.organizer === "object") {
-        return (
-          String(event.organizer._id || event.organizer.id) === organizerId
+    organizerEvents =
+      response.data ||
+      response.events ||
+      [];
+
+    let volunteerCount = 0;
+
+    organizerEvents.forEach(event => {
+
+      volunteerCount +=
+        Number(
+          event.registeredCount ||
+          event.registrationsCount ||
+          0
         );
-      }
-      return String(event.organizerId) === organizerId;
+
     });
 
-    const totalEvents = ownEvents.length;
+    els.totalEvents.textContent =
+      organizerEvents.length;
 
-    const totalVolunteers = ownEvents.reduce((sum, event) => {
-      return sum + (
-        event.filledSlots ??
-        event.registrationsCount ??
-        event.registeredCount ??
-        0
-      );
-    }, 0);
+    els.totalVolunteers.textContent =
+      volunteerCount;
 
-    if (els.totalEvents) els.totalEvents.textContent = totalEvents;
-    if (els.totalVolunteers) els.totalVolunteers.textContent = totalVolunteers;
-    if (els.certificatesIssued) els.certificatesIssued.textContent = "0";
+    await loadCertificateCount();
+
+  } catch (error) {
+
+    console.error(error);
+
+    els.totalEvents.textContent = "0";
+    els.totalVolunteers.textContent = "0";
+    els.certificatesIssued.textContent = "0";
+
+  }
+
+}
+
+/* ==================================================
+   LOAD CERTIFICATES
+================================================== */
+
+async function loadCertificateCount() {
+
+  try {
+
+    const response =
+      await apiRequest("/certificates/organizer");
+
+    const certificates =
+      response.data ||
+      response.certificates ||
+      [];
+
+    els.certificatesIssued.textContent =
+      certificates.length;
 
   } catch {
-    if (els.totalEvents) els.totalEvents.textContent = "0";
-    if (els.totalVolunteers) els.totalVolunteers.textContent = "0";
-    if (els.certificatesIssued) els.certificatesIssued.textContent = "0";
+
+    els.certificatesIssued.textContent = "0";
+
   }
+
 }
 
+/* ==================================================
+   SAVE PROFILE
+================================================== */
+
 async function saveProfile() {
+
   const error = validateProfile();
+
   if (error) {
+
     setFeedback(error, "error");
+
     return;
+
   }
 
   try {
-    if (els.editProfileBtn) {
-      els.editProfileBtn.disabled = true;
-      els.editProfileBtn.textContent = "Saving...";
-    }
 
-    let updated;
+    els.editProfileBtn.disabled = true;
 
-    try {
-      updated = await apiRequest("/user/me", {
-        method: "PUT",
-        body: JSON.stringify({
-          phoneNumber: els.phoneNumber.value.trim(),
-          website: els.website.value.trim(),
-          location: els.location.value.trim(),
-          description: els.description.value.trim()
-        })
-      });
-    } catch {
-      updated = await apiRequest("/users/me", {
-        method: "PUT",
-        body: JSON.stringify({
-          phoneNumber: els.phoneNumber.value.trim(),
-          website: els.website.value.trim(),
-          location: els.location.value.trim(),
-          description: els.description.value.trim()
-        })
-      });
-    }
+    els.editProfileBtn.textContent =
+      "Saving...";
 
-    fillProfile({
+    const payload = {
+
+      phoneNumber:
+        els.phoneNumber.value.trim(),
+
+      website:
+        els.website.value.trim(),
+
+      location:
+        els.location.value.trim(),
+
+      description:
+        els.description.value.trim()
+
+    };
+
+    const response =
+      await apiRequest(
+        "/users/me",
+        {
+
+          method: "PUT",
+
+          body: JSON.stringify(payload)
+
+        }
+      );
+
+    currentOrganizer = {
+
       ...currentOrganizer,
-      ...updated
-    });
+
+      ...(response.data ||
+         response.user ||
+         response)
+
+    };
+
+    renderProfile(currentOrganizer);
 
     toggleEditMode(false);
-    setFeedback("Profile updated successfully.", "success");
+
+    setFeedback(
+      "Profile updated successfully.",
+      "success"
+    );
 
   } catch (error) {
-    setFeedback(error.message || "Failed to update profile.", "error");
-  } finally {
-    if (els.editProfileBtn) {
-      els.editProfileBtn.disabled = false;
-      els.editProfileBtn.textContent = "Edit Profile";
-    }
-  }
-}
 
-/* ------------------ EVENTS ------------------ */
+    console.error(error);
+
+    setFeedback(
+      error.message ||
+      "Failed to update profile.",
+      "error"
+    );
+
+  } finally {
+
+    els.editProfileBtn.disabled = false;
+
+    els.editProfileBtn.textContent =
+      profileEditMode
+        ? "Save Profile"
+        : "Edit Profile";
+
+  }
+
+}
+/* ==================================================
+   EDIT PROFILE
+================================================== */
 
 function handleEditProfile() {
+
   setFeedback("");
 
   if (!profileEditMode) {
+
     toggleEditMode(true);
+
     return;
+
   }
 
   saveProfile();
+
 }
+
+/* ==================================================
+   UI
+================================================== */
 
 function bindUI() {
-  els.editProfileBtn?.addEventListener("click", handleEditProfile);
 
-  els.logoutBtn?.addEventListener("click", () => {
-    logout(ROUTES.organizerLogin);
+  els.editProfileBtn?.addEventListener(
+    "click",
+    handleEditProfile
+  );
+
+  initLogoutModal({
+
+    triggerSelector: "#logoutBtn",
+
+    redirectTo: ROUTES.organizerLogin
+
   });
+
 }
 
-/* ------------------ INIT ------------------ */
+/* ==================================================
+   INIT
+================================================== */
 
-document.addEventListener("DOMContentLoaded", async () => {
-  const user = await requireRole("organizer", ROUTES.organizerLogin);
-  if (!user) return;
+document.addEventListener(
+  "DOMContentLoaded",
+  async () => {
 
-  bindUI();
-  await loadProfile();
-  await loadStats();
-});
+    try {
+
+      organizer =
+        await requireOrganizer();
+
+      if (!organizer) {
+
+        return;
+
+      }
+
+      await loadOrganizerProfile({
+
+        avatarEl:
+          els.organizerAvatar
+
+      });
+
+      bindUI();
+
+      await loadProfile();
+
+      await loadOrganizerStats();
+
+    } catch (error) {
+
+      console.error(
+        "Failed to initialize organizer profile:",
+        error
+      );
+
+      setFeedback(
+        error.message ||
+        "Unable to load profile.",
+        "error"
+      );
+
+    }
+
+  }
+);
