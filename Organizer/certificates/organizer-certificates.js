@@ -1,4 +1,4 @@
-import { apiRequest, normalizeArray } from "../../assets/js/api.js";
+import { apiRequest } from "../../assets/js/api.js";
 
 import {
   requireOrganizer,
@@ -11,7 +11,7 @@ import {
 
 import { ROUTES } from "../../assets/js/config.js";
 
-import {
+import { normalizeArray,
   formatDate
 } from "../../assets/js/utils.js";
 
