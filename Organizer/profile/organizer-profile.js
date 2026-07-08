@@ -53,6 +53,8 @@ const els = {
 };
 
 let organizer = null;
+let currentOrganizer = null;
+let organizerEvents = [];
 let profileEditMode = false;
 
 /* ==================================================
@@ -248,13 +250,26 @@ async function loadProfile() {
 
   try {
 
-    const profile =
-      await apiRequest("/users/me");
+    let profile;
+
+    try {
+
+      profile = await apiRequest("/users/me");
+
+    } catch {
+
+      profile = await apiRequest("/user/me");
+
+    }
 
     currentOrganizer =
-      profile.data || profile.user || profile;
+      profile.data ||
+      profile.user ||
+      profile;
 
-    renderProfile(currentOrganizer);
+    populateProfile(currentOrganizer);
+
+    toggleEditMode(false);
 
   } catch (error) {
 
@@ -406,7 +421,7 @@ async function saveProfile() {
 
     };
 
-    renderProfile(currentOrganizer);
+    populateProfile(currentOrganizer);
 
     toggleEditMode(false);
 
