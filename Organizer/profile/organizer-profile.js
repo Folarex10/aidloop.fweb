@@ -1,4 +1,5 @@
-import { apiRequest, normalizeArray } from "../../assets/js/api.js";
+import { apiRequest } from "../../assets/js/api.js";
+import { normalizeArray } from "../../assets/js/utils.js";
 import {
   requireOrganizer,
   loadOrganizerProfile
