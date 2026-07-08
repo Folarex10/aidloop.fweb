@@ -1,4 +1,5 @@
 import { apiRequest } from "../../assets/js/api.js";
+
 import {
   requireOrganizer,
   loadOrganizerProfile
@@ -7,31 +8,62 @@ import {
 import { initLogoutModal } from "../../assets/js/logout.js";
 import { ROUTES } from "../../assets/js/config.js";
 
-const eventId =
-  new URLSearchParams(window.location.search)
-    .get("eventId");
+/* ==================================================
+   ELEMENTS
+================================================== */
 
 const els = {
-  table: document.getElementById("volunteerTable"),
 
-  total: document.getElementById("totalRegistered"),
-  attended: document.getElementById("attendedCount"),
-  noShow: document.getElementById("noShowCount"),
+  table:
+    document.getElementById("volunteerTable"),
 
-  searchInput: document.getElementById("searchInput"),
-  tableCountText: document.getElementById("tableCountText"),
+  total:
+    document.getElementById("totalRegistered"),
 
-  filterBtns: document.querySelectorAll(".filter-btn"),
+  attended:
+    document.getElementById("attendedCount"),
 
-  logoutBtn: document.getElementById("logoutBtn"),
+  noShow:
+    document.getElementById("noShowCount"),
 
-  organizerAvatar: document.getElementById("organizerAvatar")
+  searchInput:
+    document.getElementById("searchInput"),
+
+  tableCountText:
+    document.getElementById("tableCountText"),
+
+  filterBtns:
+    document.querySelectorAll(".filter-btn"),
+
+  organizerAvatar:
+    document.getElementById("organizerAvatar"),
+
+  logoutBtn:
+    document.getElementById("logoutBtn"),
+
+  logoutModal:
+    document.getElementById("logoutModal"),
+
+  closeLogoutModal:
+    document.getElementById("closeLogoutModal"),
+
+  cancelLogout:
+    document.getElementById("cancelLogout"),
+
+  confirmLogout:
+    document.getElementById("confirmLogout")
+
 };
+
+/* ==================================================
+   STATE
+================================================== */
 
 let organizer = null;
 
-let allEvents = [];
-let allVolunteers = [];
+let organizerEvents = [];
+
+let allRegistrations = [];
 
 let currentFilter = "all";
 
@@ -39,73 +71,109 @@ let currentFilter = "all";
    HELPERS
 ================================================== */
 
-function getVolunteer(v) {
-  return v.volunteerId || {};
-}
+function getVolunteer(registration) {
 
-function getDisplayName(v) {
-  return getVolunteer(v).fullName || "Unknown Volunteer";
-}
-
-function getEmail(v) {
-  return getVolunteer(v).email || "—";
-}
-
-function getAvatar(v) {
   return (
-    getVolunteer(v).profileImage ||
+    registration.volunteerId ||
+    registration.user ||
+    {}
+  );
+
+}
+
+function getEvent(registration) {
+
+  return organizerEvents.find(
+    event =>
+      String(event._id) ===
+      String(registration.eventId)
+  );
+
+}
+
+function getVolunteerName(registration) {
+
+  return (
+    getVolunteer(registration).fullName ||
+    "Unknown Volunteer"
+  );
+
+}
+
+function getVolunteerEmail(registration) {
+
+  return (
+    getVolunteer(registration).email ||
+    "—"
+  );
+
+}
+
+function getVolunteerAvatar(registration) {
+
+  return (
+    getVolunteer(registration).profileImage ||
     "https://i.pravatar.cc/100?img=12"
   );
+
 }
 
-function getStatus(v) {
-  return String(v.status || "").toLowerCase();
+function getEventName(registration) {
+
+  const event =
+    getEvent(registration);
+
+  return event?.name || "Unknown Event";
+
 }
 
-function isUpcoming(v) {
+function getRegistrationStatus(registration) {
 
-  const event = allEvents.find(
-    e => String(e._id) === String(v.eventId)
-  );
+  return String(
+    registration.status || ""
+  ).toLowerCase();
 
-  if (!event) return false;
+}
+
+function isAttended(registration) {
 
   return (
-    new Date(event.date) >= new Date() &&
-    event.status === "published"
+    getRegistrationStatus(registration) ===
+    "attended"
   );
+
 }
 
-function getQualification(v) {
+function getQualification(registration) {
 
-  return getStatus(v) === "attended"
+  return isAttended(registration)
     ? "Qualified for certificate"
     : "Pending attendance";
 
 }
-
 /* ==================================================
    STATS
 ================================================== */
 
 function renderStats() {
 
-  const total = allVolunteers.length;
+  const total =
+    allRegistrations.length;
 
   const attended =
-    allVolunteers.filter(
-      v => getStatus(v) === "attended"
+    allRegistrations.filter(
+      registration => isAttended(registration)
     ).length;
 
-  const noShow =
-    Math.max(
-      0,
-      total - attended
-    );
+  const pending =
+    total - attended;
 
   els.total.textContent = total;
+
   els.attended.textContent = attended;
-  els.noShow.textContent = noShow;
+
+  els.noShow.textContent = pending;
+
 }
 
 /* ==================================================
@@ -119,7 +187,8 @@ function renderTable() {
       .trim()
       .toLowerCase();
 
-  let volunteers = [...allVolunteers];
+  let registrations =
+    [...allRegistrations];
 
   /* ---------- FILTER ---------- */
 
@@ -127,35 +196,42 @@ function renderTable() {
 
     case "confirmed":
 
-      volunteers =
-        volunteers.filter(
-          v => getStatus(v) === "registered"
+      registrations =
+        registrations.filter(
+          registration =>
+            getRegistrationStatus(registration) ===
+            "registered"
         );
 
       break;
 
-    case "upcoming":
+    case "attended":
 
-      volunteers =
-        volunteers.filter(isUpcoming);
+      registrations =
+        registrations.filter(
+          registration =>
+            isAttended(registration)
+        );
 
       break;
 
     default:
       break;
+
   }
 
   /* ---------- SEARCH ---------- */
 
   if (query) {
 
-    volunteers =
-      volunteers.filter(v => {
+    registrations =
+      registrations.filter(registration => {
 
         const searchable = `
-          ${getDisplayName(v)}
-          ${getEmail(v)}
-          ${getQualification(v)}
+          ${getVolunteerName(registration)}
+          ${getVolunteerEmail(registration)}
+          ${getEventName(registration)}
+          ${getQualification(registration)}
         `.toLowerCase();
 
         return searchable.includes(query);
@@ -165,29 +241,31 @@ function renderTable() {
   }
 
   els.tableCountText.textContent =
-    `Showing ${volunteers.length} of ${allVolunteers.length} entries`;
+    `Showing ${registrations.length} of ${allRegistrations.length} entries`;
 
-  if (!volunteers.length) {
+  if (!registrations.length) {
 
     els.table.innerHTML = `
       <tr>
         <td colspan="6">
-          No volunteers found
+          No volunteers found.
         </td>
       </tr>
     `;
 
     return;
+
   }
 
   els.table.innerHTML =
-    volunteers
-      .map(v => {
+    registrations
+      .map(registration => {
 
         const attended =
-          getStatus(v) === "attended";
+          isAttended(registration);
 
         return `
+
           <tr>
 
             <td>
@@ -196,22 +274,36 @@ function renderTable() {
 
                 <img
                   class="avatar"
-                  src="${getAvatar(v)}"
-                  alt="${getDisplayName(v)}"
+                  src="${getVolunteerAvatar(registration)}"
+                  alt="${getVolunteerName(registration)}"
                 />
 
-                <span>${getDisplayName(v)}</span>
+                <div>
+
+                  <strong>
+                    ${getVolunteerName(registration)}
+                  </strong>
+
+                  <div class="event-name">
+                    ${getEventName(registration)}
+                  </div>
+
+                </div>
 
               </div>
 
             </td>
 
-            <td>${getEmail(v)}</td>
+            <td>
+              ${getVolunteerEmail(registration)}
+            </td>
 
             <td>
 
               <span class="badge confirmed">
+
                 Registered
+
               </span>
 
             </td>
@@ -220,7 +312,7 @@ function renderTable() {
 
               <button
                 class="attendance-box ${attended ? "checked" : ""}"
-                data-id="${v._id}"
+                data-id="${registration._id}"
               >
 
                 ${
@@ -250,21 +342,25 @@ function renderTable() {
             <td>
 
               <button
-                class="row-action"
                 type="button"
+                class="row-action"
               >
+
                 <i class="fa-solid fa-ellipsis"></i>
+
               </button>
 
             </td>
 
           </tr>
+
         `;
 
       })
       .join("");
 
   attachAttendanceHandlers();
+
 }
 
 /* ==================================================
@@ -275,92 +371,152 @@ function attachAttendanceHandlers() {
 
   document
     .querySelectorAll(".attendance-box")
-    .forEach((button) => {
+    .forEach(button => {
 
-      button.addEventListener("click", async () => {
+      button.addEventListener(
+        "click",
+        async () => {
 
-        const registrationId =
-          button.dataset.id;
+          const registrationId =
+            button.dataset.id;
 
-        const registration =
-          allVolunteers.find(
-            v => v._id === registrationId
-          );
+          const registration =
+            allRegistrations.find(
+              item =>
+                String(item._id) ===
+                String(registrationId)
+            );
 
-        if (!registration) return;
+          if (!registration) return;
 
-        if (getStatus(registration) === "attended") {
-          return;
+          if (isAttended(registration)) {
+            return;
+          }
+
+          try {
+
+            button.disabled = true;
+
+            await apiRequest(
+
+              `/applications/registrations/${registrationId}/attendance`,
+
+              {
+                method: "PATCH",
+
+                body: JSON.stringify({
+
+                  status: "attended"
+
+                })
+
+              }
+
+            );
+
+            registration.status =
+              "attended";
+
+            renderStats();
+
+            renderTable();
+
+          } catch (error) {
+
+            console.error(error);
+
+            alert(
+              error.message ||
+              "Failed to update attendance."
+            );
+
+            button.disabled = false;
+
+          }
+
         }
 
-        try {
-
-          button.disabled = true;
-
-          await apiRequest(
-            `/applications/registrations/${registrationId}/attendance`,
-            {
-              method: "PATCH",
-              body: JSON.stringify({
-                attendance: "attended"
-              })
-            }
-          );
-
-          registration.status = "attended";
-
-          renderStats();
-
-          renderTable();
-
-        } catch (error) {
-
-          console.error(error);
-
-          alert(
-            error.message ||
-            "Failed to update attendance."
-          );
-
-          button.disabled = false;
-
-        }
-
-      });
+      );
 
     });
 
 }
 
 /* ==================================================
-   LOAD VOLUNTEERS
+   LOAD DATA
 ================================================== */
 
 async function loadVolunteers() {
 
-  const response =
-    await apiRequest(
-      `/applications/events/${eventId}/registrations`
-    );
+  /* ---------- Load Events ---------- */
 
-  allVolunteers =
-    Array.isArray(response)
-      ? response
-      : response.data || [];
+  organizerEvents =
+    await apiRequest("/events/my-events");
+
+  organizerEvents =
+    organizerEvents.events ||
+    organizerEvents.data ||
+    organizerEvents ||
+    [];
+
+  allRegistrations = [];
+
+  /* ---------- Load registrations ---------- */
+
+  for (const event of organizerEvents) {
+
+    try {
+
+      const response =
+        await apiRequest(
+
+          `/applications/events/${event._id}/registrations`
+
+        );
+
+      const registrations =
+        response.data ||
+        response.registrations ||
+        response ||
+        [];
+
+      registrations.forEach(registration => {
+
+        registration.eventId =
+          event._id;
+
+      });
+
+      allRegistrations.push(
+        ...registrations
+      );
+
+    } catch (error) {
+
+      console.warn(
+
+        `Unable to load registrations for ${event.name}`,
+
+        error.message
+
+      );
+
+    }
+
+  }
 
   renderStats();
 
   renderTable();
 
 }
-
 /* ==================================================
    FILTERS
 ================================================== */
 
 function bindFilters() {
 
-  els.filterBtns.forEach((button) => {
+  els.filterBtns.forEach(button => {
 
     button.addEventListener("click", () => {
 
@@ -393,6 +549,7 @@ function bindSearch() {
   );
 
 }
+
 /* ==================================================
    UI
 ================================================== */
@@ -402,11 +559,6 @@ function bindUI() {
   bindFilters();
 
   bindSearch();
-
-  initLogoutModal({
-    triggerSelector: "#logoutBtn",
-    redirectTo: ROUTES.organizerLogin
-  });
 
 }
 
@@ -420,37 +572,60 @@ document.addEventListener(
 
     try {
 
-      organizer = await requireOrganizer();
+      /* ---------------- AUTH ---------------- */
+
+      organizer =
+        await requireOrganizer();
 
       if (!organizer) {
         return;
       }
 
+      /* ---------------- PROFILE ---------------- */
+
       await loadOrganizerProfile({
 
-        avatarEl: els.organizerAvatar
+        avatarEl:
+          els.organizerAvatar
 
       });
 
-      if (!eventId) {
+      /* ---------------- LOGOUT ---------------- */
 
-        alert("No event selected.");
+      initLogoutModal({
 
-        window.location.href =
-          ROUTES.organizerEventListing;
+        logoutBtn:
+          els.logoutBtn,
 
-        return;
+        logoutModal:
+          document.getElementById("logoutModal"),
 
-      }
+        closeLogoutModal:
+          document.getElementById("closeLogoutModal"),
+
+        cancelLogout:
+          document.getElementById("cancelLogout"),
+
+        confirmLogout:
+          document.getElementById("confirmLogout"),
+
+        redirectTo:
+          ROUTES.organizerLogin
+
+      });
+
+      /* ---------------- UI ---------------- */
 
       bindUI();
+
+      /* ---------------- DATA ---------------- */
 
       await loadVolunteers();
 
     } catch (error) {
 
       console.error(
-        "Failed to load volunteers:",
+        "Failed to initialize Volunteers:",
         error
       );
 
