@@ -250,7 +250,7 @@ async function loadProfile() {
 
   try {
 
-    let profile;
+    // let profile;
 
     // try {
 
@@ -343,25 +343,37 @@ async function loadCertificateCount() {
 
   try {
 
-    const response =
-      await apiRequest("/certificates/organizer");
+    let totalCertificates = 0;
 
-    const certificates =
-      response.data ||
-      response.certificates ||
-      [];
+    for (const event of organizerEvents) {
+
+      const response =
+        await apiRequest(
+          `/certificates/event/${event._id}`
+        );
+
+      const certificates =
+        Array.isArray(response)
+          ? response
+          : response.data || [];
+
+      totalCertificates +=
+        certificates.length;
+
+    }
 
     els.certificatesIssued.textContent =
-      certificates.length;
+      totalCertificates;
 
-  } catch {
+  } catch (error) {
+
+    console.error(error);
 
     els.certificatesIssued.textContent = "0";
 
   }
 
 }
-
 /* ==================================================
    SAVE PROFILE
 ================================================== */
