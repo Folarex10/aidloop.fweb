@@ -519,8 +519,19 @@ function bindUI() {
   );
 
  
-  initLogoutModal({
-    redirectTo: ROUTES.organizerLogin
+//   initLogoutModal({
+//     redirectTo: ROUTES.organizerLogin
+// });
+    initLogoutModal({
+
+    triggerSelector: "#logoutBtn",
+
+    message:
+        "You are about to end your current organizer session.",
+
+    redirectTo:
+        ROUTES.organizerLogin
+
 });
 
 }

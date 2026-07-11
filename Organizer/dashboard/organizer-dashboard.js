@@ -249,6 +249,10 @@ async function loadDashboard() {
 
 function bindUI() {
 
+  // initLogoutModal({
+  //   redirectTo: ROUTES.organizerLogin
+  // });
+
   initLogoutModal({
 
     triggerSelector: "#logoutBtn",

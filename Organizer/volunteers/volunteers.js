@@ -39,19 +39,19 @@ const els = {
     document.getElementById("organizerAvatar"),
 
   logoutBtn:
-    document.getElementById("logoutBtn"),
+    document.getElementById("logoutBtn")
 
-  logoutModal:
-    document.getElementById("logoutModal"),
+  // logoutModal:
+  //   document.getElementById("logoutModal"),
 
-  closeLogoutModal:
-    document.getElementById("closeLogoutModal"),
+  // closeLogoutModal:
+  //   document.getElementById("closeLogoutModal"),
 
-  cancelLogout:
-    document.getElementById("cancelLogout"),
+  // cancelLogout:
+  //   document.getElementById("cancelLogout"),
 
-  confirmLogout:
-    document.getElementById("confirmLogout")
+  // confirmLogout:
+  //   document.getElementById("confirmLogout")
 
 };
 
@@ -592,28 +592,39 @@ document.addEventListener(
 
       /* ---------------- LOGOUT ---------------- */
 
+      // initLogoutModal({
+
+      //   logoutBtn:
+      //     els.logoutBtn,
+
+      //   logoutModal:
+      //     document.getElementById("logoutModal"),
+
+      //   closeLogoutModal:
+      //     document.getElementById("closeLogoutModal"),
+
+      //   cancelLogout:
+      //     document.getElementById("cancelLogout"),
+
+      //   confirmLogout:
+      //     document.getElementById("confirmLogout"),
+
+      //   redirectTo:
+      //     ROUTES.organizerLogin
+
+      // });
+
       initLogoutModal({
 
-        logoutBtn:
-          els.logoutBtn,
+    triggerSelector: "#logoutBtn",
 
-        logoutModal:
-          document.getElementById("logoutModal"),
+    message:
+        "You are about to end your current organizer session.",
 
-        closeLogoutModal:
-          document.getElementById("closeLogoutModal"),
+    redirectTo:
+        ROUTES.organizerLogin
 
-        cancelLogout:
-          document.getElementById("cancelLogout"),
-
-        confirmLogout:
-          document.getElementById("confirmLogout"),
-
-        redirectTo:
-          ROUTES.organizerLogin
-
-      });
-
+});
       /* ---------------- UI ---------------- */
 
       bindUI();

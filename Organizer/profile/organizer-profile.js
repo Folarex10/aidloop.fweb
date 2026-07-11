@@ -36,17 +36,17 @@ const els = {
   organizerAvatar:
     document.getElementById("organizerAvatar"),
 
-  logoutModal:
-    document.getElementById("logoutModal"),
+  // logoutModal:
+  //   document.getElementById("logoutModal"),
 
-  closeLogoutModal:
-    document.getElementById("closeLogoutModal"),
+  // closeLogoutModal:
+  //   document.getElementById("closeLogoutModal"),
 
-  cancelLogout:
-    document.getElementById("cancelLogout"),
+  // cancelLogout:
+  //   document.getElementById("cancelLogout"),
 
-  confirmLogout:
-    document.getElementById("confirmLogout"),
+  // confirmLogout:
+  //   document.getElementById("confirmLogout"),
 
   feedback:
     document.getElementById("profileMessage")
@@ -485,13 +485,25 @@ function bindUI() {
     handleEditProfile
   );
 
+  // initLogoutModal({
+
+  //   triggerSelector: "#logoutBtn",
+
+  //   redirectTo: ROUTES.organizerLogin
+
+  // });
+
   initLogoutModal({
 
     triggerSelector: "#logoutBtn",
 
-    redirectTo: ROUTES.organizerLogin
+    message:
+        "You are about to end your current organizer session.",
 
-  });
+    redirectTo:
+        ROUTES.organizerLogin
+
+});
 
 }
 

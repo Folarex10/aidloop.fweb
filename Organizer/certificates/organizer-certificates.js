@@ -40,19 +40,19 @@ const els = {
     document.getElementById("organizerAvatar"),
 
   logoutBtn:
-    document.getElementById("logoutBtn"),
+    document.getElementById("logoutBtn")
 
-  logoutModal:
-    document.getElementById("logoutModal"),
+  // logoutModal:
+  //   document.getElementById("logoutModal"),
 
-  closeLogoutModal:
-    document.getElementById("closeLogoutModal"),
+  // closeLogoutModal:
+  //   document.getElementById("closeLogoutModal"),
 
-  cancelLogout:
-    document.getElementById("cancelLogout"),
+  // cancelLogout:
+  //   document.getElementById("cancelLogout"),
 
-  confirmLogout:
-    document.getElementById("confirmLogout")
+  // confirmLogout:
+  //   document.getElementById("confirmLogout")
 
 };
 
@@ -479,10 +479,22 @@ document.addEventListener(
 
       /* ---------------- LOGOUT ---------------- */
 
+      // initLogoutModal({
+      //   triggerSelector: "#logoutBtn",
+      //   redirectTo: ROUTES.organizerLogin
+      // });
+
       initLogoutModal({
-        triggerSelector: "#logoutBtn",
-        redirectTo: ROUTES.organizerLogin
-      });
+
+    triggerSelector: "#logoutBtn",
+
+    message:
+        "You are about to end your current organizer session.",
+
+    redirectTo:
+        ROUTES.organizerLogin
+
+});
 
       /* ---------------- LOAD DATA ---------------- */
 
