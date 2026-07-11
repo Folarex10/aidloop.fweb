@@ -15,11 +15,11 @@ const els = {
   eventsTable: document.getElementById("eventsTable"),
   emptyState: document.getElementById("emptyState"),
 
-  logoutBtn: document.getElementById("logoutBtn"),
-  logoutModal: document.getElementById("logoutModal"),
-  closeLogoutModal: document.getElementById("closeLogoutModal"),
-  cancelLogout: document.getElementById("cancelLogout"),
-  confirmLogout: document.getElementById("confirmLogout")
+  logoutBtn: document.getElementById("logoutBtn")
+  // logoutModal: document.getElementById("logoutModal"),
+  // closeLogoutModal: document.getElementById("closeLogoutModal"),
+  // cancelLogout: document.getElementById("cancelLogout"),
+  // confirmLogout: document.getElementById("confirmLogout")
 };
 
 let organizer = null;
@@ -250,8 +250,16 @@ async function loadDashboard() {
 function bindUI() {
 
   initLogoutModal({
-    redirectTo: ROUTES.organizerLogin
-  });
+
+    triggerSelector: "#logoutBtn",
+
+    message:
+        "You are about to end your current organizer session.",
+
+    redirectTo:
+        ROUTES.organizerLogin
+
+});
 
 }
 
