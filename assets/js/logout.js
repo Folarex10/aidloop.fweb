@@ -253,7 +253,7 @@ export function initLogoutModal({
 
       // window.location.href = redirectTo;
 
-      localStorage.removeItem("aidloop_admin_email");
+    localStorage.removeItem("aidloop_admin_email");
     localStorage.removeItem("aidloop_organizer_email");
     localStorage.removeItem("aidloop_volunteer_email");
 
