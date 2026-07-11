@@ -261,7 +261,7 @@ function bindUI() {
         "You are about to end your current organizer session.",
 
     redirectTo:
-        ROUTES.organizerLogin
+        ROUTES.home
 
 });
 
