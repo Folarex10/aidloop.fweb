@@ -180,10 +180,8 @@ function bindDeactivateButtons() {
 
 async function loadUsers() {
   try {
-    const payload = await apiRequest("/user").catch(() =>
-      apiRequest("/users")
-    );
-
+    const payload = await apiRequest("/user");
+    
     usersCache = normalizeUsers(payload);
 
     // newest first

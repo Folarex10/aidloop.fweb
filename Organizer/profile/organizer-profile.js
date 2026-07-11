@@ -250,18 +250,6 @@ async function loadProfile() {
 
   try {
 
-    // let profile;
-
-    // try {
-
-    //   profile = await apiRequest("/users/me");
-
-    // } catch {
-
-    //   profile = await apiRequest("/user/me");
-
-    // }
-
     const profile = await apiRequest("/user/me");
 
     currentOrganizer =

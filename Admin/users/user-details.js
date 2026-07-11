@@ -130,8 +130,8 @@ async function loadUserDetails() {
   }
 
   try {
-    const payload = await apiRequest("/user")
-      .catch(() => apiRequest("/users"));
+    const payload = await apiRequest("/user");
+   
 
     const users = normalizeUsers(payload);
 
