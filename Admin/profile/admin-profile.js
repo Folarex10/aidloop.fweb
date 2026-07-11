@@ -2,7 +2,8 @@ import { apiRequest } from "../../assets/js/api.js";
 import {
   loadAdminProfile as loadAdminHeader
 } from "../../assets/js/admin/admin-auth.js";
-import { logout } from "../../assets/js/logout.js";
+// import { logout } from "../../assets/js/logout.js";
+import { initLogoutModal } from "../../assets/js/logout.js";
 import { ROUTES } from "../../assets/js/config.js";
 
 const els = {
@@ -20,11 +21,11 @@ const els = {
   confirmPassword: document.getElementById("confirmPassword"),
   passwordForm: document.getElementById("passwordForm"),
   passwordFeedback: document.getElementById("passwordFeedback"),
-  logoutBtn: document.getElementById("logoutBtn"),
-  logoutModal: document.getElementById("logoutModal"),
-  closeLogoutModal: document.getElementById("closeLogoutModal"),
-  cancelLogout: document.getElementById("cancelLogout"),
-  confirmLogout: document.getElementById("confirmLogout")
+  logoutBtn: document.getElementById("logoutBtn")
+  // logoutModal: document.getElementById("logoutModal"),
+  // closeLogoutModal: document.getElementById("closeLogoutModal"),
+  // cancelLogout: document.getElementById("cancelLogout"),
+  // confirmLogout: document.getElementById("confirmLogout")
 };
 
 let profileEditMode = false;
@@ -152,27 +153,27 @@ async function updatePassword(e) {
   }
 }
 
-function openLogoutModal() {
-  els.logoutModal?.classList.remove("hidden");
-}
+// function openLogoutModal() {
+//   els.logoutModal?.classList.remove("hidden");
+// }
 
-function closeLogoutModal() {
-  els.logoutModal?.classList.add("hidden");
+// function closeLogoutModal() {
+//   els.logoutModal?.classList.add("hidden");
 
-  if (els.confirmLogout) {
-    els.confirmLogout.disabled = false;
-    els.confirmLogout.textContent = "Yes, Log out";
-  }
-}
+//   if (els.confirmLogout) {
+//     els.confirmLogout.disabled = false;
+//     els.confirmLogout.textContent = "Yes, Log out";
+//   }
+// }
 
-async function handleLogout() {
-  if (els.confirmLogout) {
-    els.confirmLogout.disabled = true;
-    els.confirmLogout.textContent = "Logging out...";
-  }
+// async function handleLogout() {
+//   if (els.confirmLogout) {
+//     els.confirmLogout.disabled = true;
+//     els.confirmLogout.textContent = "Logging out...";
+//   }
 
-  await logout(ROUTES.home);
-}
+//   await logout(ROUTES.home);
+// }
 
 /* ---------------- INIT ---------------- */
 
@@ -187,22 +188,32 @@ document.addEventListener("DOMContentLoaded", async () => {
   els.editProfileBtn.addEventListener("click", handleEditProfile);
   els.passwordForm.addEventListener("submit", updatePassword);
 
-  els.logoutBtn.onclick = openLogoutModal;
+  // els.logoutBtn.onclick = openLogoutModal;
 
-  els.closeLogoutModal?.addEventListener(
-    "click",
-    closeLogoutModal
-  );
+  // els.closeLogoutModal?.addEventListener(
+  //   "click",
+  //   closeLogoutModal
+  // );
 
-  els.cancelLogout?.addEventListener(
-    "click",
-    closeLogoutModal
-  );
+  // els.cancelLogout?.addEventListener(
+  //   "click",
+  //   closeLogoutModal
+  // );
 
-  els.confirmLogout?.addEventListener(
-    "click",
-    handleLogout
-  );
+  // els.confirmLogout?.addEventListener(
+  //   "click",
+  //   handleLogout
+  // );
+
+  initLogoutModal({
+    triggerSelector: "#logoutBtn",
+
+    message:
+        "You are about to end your current admin session.",
+
+    redirectTo:
+        ROUTES.adminLogin
+});
 
   await loadProfile();
 });

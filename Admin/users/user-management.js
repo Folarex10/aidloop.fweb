@@ -1,6 +1,7 @@
 import { apiRequest } from "../../assets/js/api.js";
 import { loadAdminProfile } from "../../assets/js/admin/admin-auth.js";
-import { logout } from "../../assets/js/logout.js";
+// import { logout } from "../../assets/js/logout.js";
+import { initLogoutModal } from "../../assets/js/logout.js";
 import { ROUTES } from "../../assets/js/config.js";
 
 /* ---------------- ELEMENTS ---------------- */
@@ -15,11 +16,11 @@ const els = {
 
   searchInput: document.getElementById("searchInput"),
 
-  logoutBtn: document.getElementById("logoutBtn"),
-  logoutModal: document.getElementById("logoutModal"),
-  closeLogoutModal: document.getElementById("closeLogoutModal"),
-  cancelLogout: document.getElementById("cancelLogout"),
-  confirmLogout: document.getElementById("confirmLogout")
+  logoutBtn: document.getElementById("logoutBtn")
+  // logoutModal: document.getElementById("logoutModal"),
+  // closeLogoutModal: document.getElementById("closeLogoutModal"),
+  // cancelLogout: document.getElementById("cancelLogout"),
+  // confirmLogout: document.getElementById("confirmLogout")
 };
 
 let usersCache = [];
@@ -203,49 +204,60 @@ async function loadUsers() {
 
 
 
-function openLogoutModal() {
-  els.logoutModal?.classList.remove("hidden");
-}
+// function openLogoutModal() {
+//   els.logoutModal?.classList.remove("hidden");
+// }
 
-function closeLogoutModal() {
-  els.logoutModal?.classList.add("hidden");
+// function closeLogoutModal() {
+//   els.logoutModal?.classList.add("hidden");
 
-  if (els.confirmLogout) {
-    els.confirmLogout.disabled = false;
-    els.confirmLogout.textContent = "Yes, Log out";
-  }
-}
+//   if (els.confirmLogout) {
+//     els.confirmLogout.disabled = false;
+//     els.confirmLogout.textContent = "Yes, Log out";
+//   }
+// }
 
-async function handleLogout() {
-  if (els.confirmLogout) {
-    els.confirmLogout.disabled = true;
-    els.confirmLogout.textContent = "Logging out...";
-  }
+// async function handleLogout() {
+//   if (els.confirmLogout) {
+//     els.confirmLogout.disabled = true;
+//     els.confirmLogout.textContent = "Logging out...";
+//   }
 
-  await logout(ROUTES.home);
-}
+//   await logout(ROUTES.home);
+// }
 
 /* ---------------- INIT ---------------- */
 
 function bindUI() {
   els.searchInput.addEventListener("input", renderUsers);
 
-  els.logoutBtn.onclick = openLogoutModal;
+//   els.logoutBtn.onclick = openLogoutModal;
 
-els.closeLogoutModal?.addEventListener(
-  "click",
-  closeLogoutModal
-);
+// els.closeLogoutModal?.addEventListener(
+//   "click",
+//   closeLogoutModal
+// );
 
-els.cancelLogout?.addEventListener(
-  "click",
-  closeLogoutModal
-);
+// els.cancelLogout?.addEventListener(
+//   "click",
+//   closeLogoutModal
+// );
 
-els.confirmLogout?.addEventListener(
-  "click",
-  handleLogout
-);
+// els.confirmLogout?.addEventListener(
+//   "click",
+//   handleLogout
+// );
+
+initLogoutModal({
+    triggerSelector: "#logoutBtn",
+
+    message:
+        "You are about to end your current admin session.",
+
+    redirectTo:
+        ROUTES.adminLogin
+});
+
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
