@@ -10,7 +10,8 @@ import {
 
 import { getFlaggedEvents } from "../../assets/js/admin/admin-flags.js";
 import { autoFlagIfRepeatedCancellation } from "../../assets/js/admin/admin-flags.js";
-import { logout } from "../../assets/js/logout.js";
+// import { logout } from "../../assets/js/logout.js";
+import { initLogoutModal } from "../../assets/js/logout.js";
 import { ROUTES } from "../../assets/js/config.js";
 
 const els = {
